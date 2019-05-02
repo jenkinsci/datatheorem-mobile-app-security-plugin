@@ -1,0 +1,16 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
+	<f:entry title="">
+		<p>Please define API Key using Credentials link on side bar, then
+		   bind that value with DATA_THEOREM_UPLOAD_API_KEY variable.
+		</p>
+	</f:entry>
+   <f:entry title="${%Build To Upload}" field="buildToUpload">
+        <f:textbox />
+    </f:entry>
+    <f:advanced>
+	    <f:entry title="${%Dont Upload Build}" field="dontUpload">
+		    <f:checkbox field="dontUpload"/>
+	    </f:entry>
+	</f:advanced>
+</j:jelly>
