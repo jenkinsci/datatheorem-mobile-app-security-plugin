@@ -12,6 +12,7 @@ import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.util.FormValidation;
 import jenkins.tasks.SimpleBuildStep;
+import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
@@ -111,6 +112,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         return dontUpload;
     }
 
+    @Symbol("Data Theorem")
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
         /*
