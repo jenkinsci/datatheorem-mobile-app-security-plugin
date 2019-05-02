@@ -1,10 +1,11 @@
 # Data Theorem Mobile App Security Plugin
 
-This plugin allows you to upload PreProd mobile binaries directly to Data Theorem for security scanning, as part of your CI/CD pipeline.
+This plugin allows customers to upload PreProd mobile binaries directly to Data Theorem for security scanning, as part of your CI/CD pipeline.
 
-## Installing the plugin in your Jenkins instance
+## Using the plugin in your Jenkins instance
 
-To install the plugin, you need a Data Theorem account with a subscription. **A quick-start guide is available here :** [User guide](USERGUIDE.md)
+To use the plugin, you need a Data Theorem account with a subscription.
+To find your API Key you can follow: https://datatheorem.github.io/PortalApi/upload_api.html
 
 ## Local development
 
