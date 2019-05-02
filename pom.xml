@@ -8,7 +8,7 @@
         <relativePath />
     </parent>
     <groupId>com.datatheorem.mobileappsecurity.jenkins.plugin</groupId>
-    <artifactId>datatheorem-auto-upload</artifactId>
+    <artifactId>datatheorem-mobile-app-security</artifactId>
     <version>1.0.0</version>
     <packaging>hpi</packaging>
     <properties>
