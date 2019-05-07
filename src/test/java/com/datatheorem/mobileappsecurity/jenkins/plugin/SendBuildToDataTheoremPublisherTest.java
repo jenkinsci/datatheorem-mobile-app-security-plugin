@@ -55,7 +55,7 @@ public class SendBuildToDataTheoremPublisherTest {
 
             FreeStyleBuild completedBuild = jenkins.assertBuildStatusSuccess(job.scheduleBuild2(0));
 
-            String expectedString = "Fond the build at path:";
+            String expectedString = "Found the build at path:";
             jenkins.assertLogContains(expectedString, completedBuild);
         }
     }
