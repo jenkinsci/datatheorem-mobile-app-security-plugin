@@ -16,8 +16,8 @@
         <jenkins.version>2.73.3</jenkins.version>
         <java.level>8</java.level>
     </properties>
-    <name>Send build to Data Theorem</name>
-    <description>Jenkins plugin to automatically upload build to Data Theorem</description>
+    <name>Data Theorem: CI/CD Plugin</name>
+    <description>Jenkins plugin to automatically upload builds to Data Theorem</description>
     <!-- The default licence for Jenkins OSS Plugins is MIT. Substitute for the applicable one if needed. -->
     <licenses>
         <license>
@@ -25,6 +25,16 @@
             <url>https://opensource.org/licenses/MIT</url>
         </license>
     </licenses>
+
+    <url>https://wiki.jenkins.io/display/JENKINS/Data+Theorem+Mobile+App+Security+Plugin</url>
+
+    <developers>
+        <developer>
+            <id>mtranzer</id>
+            <name>Data Theorem</name>
+        </developer>
+    </developers>
+
     <dependencies>
         <dependency>
             <groupId>org.jenkins-ci.plugins</groupId>
