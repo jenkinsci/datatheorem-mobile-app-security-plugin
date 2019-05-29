@@ -272,7 +272,7 @@ public class SendBuildTest {
      * </p>
      */
     @Test()
-    public void testdUploadBuildIOException() throws IOException {
+    public void testUploadBuildIOException() throws IOException {
         SendBuildAction uploadMock = partialMockBuilder(SendBuildAction.class)
                 .withConstructor(String.class, PrintStream.class)
                 .withArgs("toto", new PrintStream("test-logger.log"))
@@ -294,6 +294,86 @@ public class SendBuildTest {
         Assert.assertEquals(uploadBuildMessage.message, "Data Theorem upload build returned an error: IOException: null");
 
         Assert.assertFalse(uploadBuildMessage.success);
+
+        EasyMock.verify(uploadMock);
+    }
+
+
+    /**
+     * Test the return message of SendBuildAction when the env var DATA_THEOREM_UPLOAD_API_KEY is not set
+     * <p>
+     * Verify that UploadInit returns success = false and an empty APIKey message
+     * </p>
+     */
+    @Test()
+    public void testMissingEnvVariable() throws IOException {
+        SendBuildAction uploadMock = partialMockBuilder(SendBuildAction.class)
+                .withConstructor(String.class, PrintStream.class)
+                .withArgs(null, new PrintStream("test-logger.log"))
+                .createMock();
+
+        replay(uploadMock);
+        SendBuildMessage sendBuildMessage = uploadMock.perform("foo.apk");
+
+        Assert.assertEquals(
+                sendBuildMessage.message,
+                "Missing Data Theorem upload APIKey:\n" +
+                        "Ensure \"DATA_THEOREM_UPLOAD_API_KEY\" is set in Credentials Binding");
+
+        Assert.assertFalse(sendBuildMessage.success);
+
+        EasyMock.verify(uploadMock);
+    }
+
+
+    /**
+     * Test the return message of SendBuildAction when the env var DATA_THEOREM_UPLOAD_API_KEY is not set
+     * <p>
+     * Verify that UploadInit returns success = false
+     * </p>
+     */
+    @Test()
+    public void testEmptyApiKey() throws IOException {
+        SendBuildAction uploadMock = partialMockBuilder(SendBuildAction.class)
+                .withConstructor(String.class, PrintStream.class)
+                .withArgs("", new PrintStream("test-logger.log"))
+                .createMock();
+
+        replay(uploadMock);
+        SendBuildMessage sendBuildMessage = uploadMock.perform("foo.apk");
+
+        Assert.assertEquals(
+                sendBuildMessage.message,
+                "Upload APIKey secret key is empty");
+
+        Assert.assertFalse(sendBuildMessage.success);
+
+        EasyMock.verify(uploadMock);
+    }
+
+
+    /**
+     * Test the return message of uploadInit when the APIKey begins with "APIKey"
+     * <p>
+     * Verify that UploadInit returns success = false
+     * </p>
+     */
+    @Test()
+    public void testApiKeyBeginWithApiKey() throws IOException {
+        SendBuildAction uploadMock = partialMockBuilder(SendBuildAction.class)
+                .withConstructor(String.class, PrintStream.class)
+                .withArgs("APIKey", new PrintStream("test-logger.log"))
+                .createMock();
+
+        replay(uploadMock);
+        SendBuildMessage sendBuildMessage = uploadMock.perform("foo.apk");
+
+        Assert.assertEquals(
+                sendBuildMessage.message,
+                "Error your upload APIKey shouldn't start with \"APIKey\""
+        );
+
+        Assert.assertFalse(sendBuildMessage.success);
 
         EasyMock.verify(uploadMock);
     }

@@ -51,7 +51,7 @@ class SendBuildAction {
     private final String apiKey;
     private final PrintStream logger; // Jenkins logger
     private String uploadUrl;
-    private String version = "1.0.0";
+    private String version = "1.0.3";
 
     SendBuildAction(String apiKey, PrintStream logger) {
         /*
@@ -89,6 +89,27 @@ class SendBuildAction {
          * @return:
          *   SendBuildMessage containing the success or the failure information of upload_init call
          */
+
+        try {
+            if (apiKey.startsWith("APIKey")) {
+                return new SendBuildMessage(
+                        false,
+                        "Error your upload APIKey shouldn't start with \"APIKey\""
+                );
+            }
+            if (apiKey.equals("")) {
+                return new SendBuildMessage(
+                        false,
+                        "Upload APIKey secret key is empty"
+                );
+            }
+        } catch (java.lang.NullPointerException e) {
+                return new SendBuildMessage(
+                        false,
+                        "Missing Data Theorem upload APIKey:\n"+
+                                "Ensure \"DATA_THEOREM_UPLOAD_API_KEY\" is set in Credentials Binding"
+                );
+        }
 
         logger.println("Retrieving the upload URL from Data Theorem ...");
         try {
@@ -169,7 +190,7 @@ class SendBuildAction {
 
         // Add the api access key of the customer and tell to Upload API that the request comes from jenkins
 
-        requestUploadInit.addHeader("Authorization", apiKey);
+        requestUploadInit.addHeader("Authorization", "APIKEY " + apiKey);
         requestUploadInit.addHeader("User-Agent", "Jenkins Upload API Plugin " + version);
 
         HttpResponse response = client.execute(requestUploadInit);
@@ -237,7 +258,6 @@ class SendBuildAction {
         requestUploadbuild.setEntity(entity);
 
         // Add the api access key of the customer and tell to Upload API that the request comes from jenkins
-        // TODO(AD): Can we add the plugin version to the user agent?
         requestUploadbuild.addHeader("User-Agent", "Jenkins Upload API Plugin " + version);
         HttpResponse response = client.execute(requestUploadbuild);
         logger.println(response.getStatusLine().toString());
