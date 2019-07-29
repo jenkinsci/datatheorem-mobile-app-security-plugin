@@ -1,5 +1,6 @@
 package com.datatheorem.mobileappsecurity.jenkins.plugin;
 
+import hudson.FilePath;
 import org.apache.http.*;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.impl.DefaultHttpResponseFactory;
@@ -8,10 +9,7 @@ import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.net.UnknownHostException;
 
 import static org.easymock.EasyMock.partialMockBuilder;
@@ -34,8 +32,8 @@ public class SendBuildTest {
     public void testUploadInitIOException() throws IOException {
 
         SendBuildAction uploadMock = partialMockBuilder(SendBuildAction.class)
-                .withConstructor(String.class, PrintStream.class)
-                .withArgs("toto", new PrintStream("test-logger.log"))
+                .withConstructor(String.class, PrintStream.class, FilePath.class)
+                .withArgs("toto",new PrintStream("test-logger.log"), new FilePath(new File("Fake_workspace")))
                 .addMockedMethod("uploadInitRequest")
                 .createMock();
 
@@ -61,8 +59,8 @@ public class SendBuildTest {
     @Test()
     public void testUploadInitUnknownHost() throws IOException {
         SendBuildAction uploadMock = partialMockBuilder(SendBuildAction.class)
-                .withConstructor(String.class, PrintStream.class)
-                .withArgs("toto", new PrintStream("test-logger.log"))
+                .withConstructor(String.class, PrintStream.class, FilePath.class)
+                .withArgs("toto",new PrintStream("test-logger.log"), new FilePath(new File("Fake_workspace")))
                 .addMockedMethod("uploadInitRequest")
                 .createMock();
 
@@ -92,8 +90,8 @@ public class SendBuildTest {
     @Test()
     public void testUploadInitForbidden() throws IOException {
         SendBuildAction uploadMock = partialMockBuilder(SendBuildAction.class)
-                .withConstructor(String.class, PrintStream.class)
-                .withArgs("toto", new PrintStream("test-logger.log"))
+                .withConstructor(String.class, PrintStream.class, FilePath.class)
+                .withArgs("toto",new PrintStream("test-logger.log"), new FilePath(new File("Fake_workspace")))
                 .addMockedMethod("uploadInitRequest")
                 .createMock();
 
@@ -129,8 +127,8 @@ public class SendBuildTest {
     @Test()
     public void testUploadInitSuccessWrongPayload() throws IOException {
         SendBuildAction uploadMock = partialMockBuilder(SendBuildAction.class)
-                .withConstructor(String.class, PrintStream.class)
-                .withArgs("toto", new PrintStream("test-logger.log"))
+                .withConstructor(String.class, PrintStream.class, FilePath.class)
+                .withArgs("toto",new PrintStream("test-logger.log"), new FilePath(new File("Fake_workspace")))
                 .addMockedMethod("uploadInitRequest")
                 .createMock();
 
@@ -166,8 +164,8 @@ public class SendBuildTest {
     @Test()
     public void testUploadInitSuccess() throws IOException {
         SendBuildAction uploadMock = partialMockBuilder(SendBuildAction.class)
-                .withConstructor(String.class, PrintStream.class)
-                .withArgs("toto", new PrintStream("test-logger.log"))
+                .withConstructor(String.class, PrintStream.class, FilePath.class)
+                .withArgs("toto",new PrintStream("test-logger.log"), new FilePath(new File("Fake_workspace")))
                 .addMockedMethod("uploadInitRequest")
                 .createMock();
 
@@ -201,10 +199,10 @@ public class SendBuildTest {
      * </p>
      */
     @Test()
-    public void testUploadBuildSuccess() throws IOException {
+    public void testUploadBuildSuccess() throws IOException, InterruptedException {
         SendBuildAction uploadMock = partialMockBuilder(SendBuildAction.class)
-                .withConstructor(String.class, PrintStream.class)
-                .withArgs("toto", new PrintStream("test-logger.log"))
+                .withConstructor(String.class, PrintStream.class, FilePath.class)
+                .withArgs("toto",new PrintStream("test-logger.log"), new FilePath(new File("Fake_workspace")))
                 .addMockedMethod("uploadBuildRequest")
                 .createMock();
 
@@ -215,11 +213,11 @@ public class SendBuildTest {
         InputStream inputStream = new ByteArrayInputStream("{\"status\":\"ok\",\"name\":\"AndroidCodingExercise\"}".getBytes());
         entity.setContent(inputStream);
         response.setEntity(entity);
-        EasyMock.expect(uploadMock.uploadBuildRequest("AndroidCodingExercise"))
+        EasyMock.expect(uploadMock.uploadBuildRequest("AndroidCodingExercise", true))
                 .andReturn(response);
 
         replay(uploadMock);
-        SendBuildMessage uploadBuildMessage = uploadMock.uploadBuild("AndroidCodingExercise");
+        SendBuildMessage uploadBuildMessage = uploadMock.uploadBuild("AndroidCodingExercise", true);
 
         Assert.assertEquals(
                 uploadBuildMessage.message,
@@ -238,10 +236,10 @@ public class SendBuildTest {
      * </p>
      */
     @Test()
-    public void testUploadBuildUploadLinkExpire() throws IOException {
+    public void testUploadBuildUploadLinkExpire() throws IOException, InterruptedException {
         SendBuildAction uploadMock = partialMockBuilder(SendBuildAction.class)
-                .withConstructor(String.class, PrintStream.class)
-                .withArgs("toto", new PrintStream("test-logger.log"))
+                .withConstructor(String.class, PrintStream.class, FilePath.class)
+                .withArgs("toto",new PrintStream("test-logger.log"), new FilePath(new File("Fake_workspace")))
                 .addMockedMethod("uploadBuildRequest")
                 .createMock();
 
@@ -252,11 +250,11 @@ public class SendBuildTest {
         InputStream inputStream = new ByteArrayInputStream("{\"status\":\"ok\",\"name\":\"AndroidCodingExercise\"}".getBytes());
         entity.setContent(inputStream);
         response.setEntity(entity);
-        EasyMock.expect(uploadMock.uploadBuildRequest("AndroidCodingExercise"))
+        EasyMock.expect(uploadMock.uploadBuildRequest("AndroidCodingExercise", true))
                 .andReturn(response);
 
         replay(uploadMock);
-        SendBuildMessage uploadBuildMessage = uploadMock.uploadBuild("AndroidCodingExercise");
+        SendBuildMessage uploadBuildMessage = uploadMock.uploadBuild("AndroidCodingExercise", true);
 
         Assert.assertFalse(uploadBuildMessage.success);
 
@@ -272,10 +270,10 @@ public class SendBuildTest {
      * </p>
      */
     @Test()
-    public void testUploadBuildIOException() throws IOException {
+    public void testUploadBuildIOException() throws IOException, InterruptedException {
         SendBuildAction uploadMock = partialMockBuilder(SendBuildAction.class)
-                .withConstructor(String.class, PrintStream.class)
-                .withArgs("toto", new PrintStream("test-logger.log"))
+                .withConstructor(String.class, PrintStream.class, FilePath.class)
+                .withArgs("toto",new PrintStream("test-logger.log"), new FilePath(new File("Fake_workspace")))
                 .addMockedMethod("uploadBuildRequest")
                 .createMock();
 
@@ -286,11 +284,11 @@ public class SendBuildTest {
         InputStream inputStream = new ByteArrayInputStream("{\"status\":\"ok\",\"name\":\"AndroidCodingExercise\"}".getBytes());
         entity.setContent(inputStream);
         response.setEntity(entity);
-        EasyMock.expect(uploadMock.uploadBuildRequest("AndroidCodingExercise"))
+        EasyMock.expect(uploadMock.uploadBuildRequest("AndroidCodingExercise", true))
                 .andThrow(new IOException());
 
         replay(uploadMock);
-        SendBuildMessage uploadBuildMessage = uploadMock.uploadBuild("AndroidCodingExercise");
+        SendBuildMessage uploadBuildMessage = uploadMock.uploadBuild("AndroidCodingExercise", true);
         Assert.assertEquals(uploadBuildMessage.message, "Data Theorem upload build returned an error: IOException: null");
 
         Assert.assertFalse(uploadBuildMessage.success);
@@ -308,12 +306,12 @@ public class SendBuildTest {
     @Test()
     public void testMissingEnvVariable() throws IOException {
         SendBuildAction uploadMock = partialMockBuilder(SendBuildAction.class)
-                .withConstructor(String.class, PrintStream.class)
-                .withArgs(null, new PrintStream("test-logger.log"))
+                .withConstructor(String.class, PrintStream.class, FilePath.class)
+                .withArgs(null, new PrintStream("test-logger.log"), new FilePath(new File("Fake_workspace")))
                 .createMock();
 
         replay(uploadMock);
-        SendBuildMessage sendBuildMessage = uploadMock.perform("foo.apk");
+        SendBuildMessage sendBuildMessage = uploadMock.perform("foo.apk", true);
 
         Assert.assertEquals(
                 sendBuildMessage.message,
@@ -335,12 +333,12 @@ public class SendBuildTest {
     @Test()
     public void testEmptyApiKey() throws IOException {
         SendBuildAction uploadMock = partialMockBuilder(SendBuildAction.class)
-                .withConstructor(String.class, PrintStream.class)
-                .withArgs("", new PrintStream("test-logger.log"))
+                .withConstructor(String.class, PrintStream.class, FilePath.class)
+                .withArgs("",new PrintStream("test-logger.log"), new FilePath(new File("Fake_workspace")))
                 .createMock();
 
         replay(uploadMock);
-        SendBuildMessage sendBuildMessage = uploadMock.perform("foo.apk");
+        SendBuildMessage sendBuildMessage = uploadMock.perform("foo.apk", true);
 
         Assert.assertEquals(
                 sendBuildMessage.message,
@@ -361,12 +359,12 @@ public class SendBuildTest {
     @Test()
     public void testApiKeyBeginWithApiKey() throws IOException {
         SendBuildAction uploadMock = partialMockBuilder(SendBuildAction.class)
-                .withConstructor(String.class, PrintStream.class)
-                .withArgs("APIKey", new PrintStream("test-logger.log"))
+                .withConstructor(String.class, PrintStream.class, FilePath.class)
+                .withArgs("APIKey",new PrintStream("test-logger.log"), new FilePath(new File("Fake_workspace")))
                 .createMock();
 
         replay(uploadMock);
-        SendBuildMessage sendBuildMessage = uploadMock.perform("foo.apk");
+        SendBuildMessage sendBuildMessage = uploadMock.perform("foo.apk", true );
 
         Assert.assertEquals(
                 sendBuildMessage.message,

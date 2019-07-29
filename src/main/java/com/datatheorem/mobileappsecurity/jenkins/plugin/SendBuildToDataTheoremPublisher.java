@@ -1,5 +1,6 @@
 package com.datatheorem.mobileappsecurity.jenkins.plugin;
 
+import groovy.lang.Tuple2;
 import hudson.Extension;
 import hudson.FilePath;
 import hudson.Launcher;
@@ -62,9 +63,12 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         listener.getLogger().println("Uploading the build to Data Theorem : " + this.buildToUpload);
 
         // First find the path to the build to upload
-        FindBuildPathAction buildToSend = new FindBuildPathAction(this.buildToUpload, workspace, run);
-        String buildPath = buildToSend.perform();
-        if (buildPath != null) {
+        FindBuildPathAction buildToSend = new FindBuildPathAction(this.buildToUpload, workspace, run, listener.getLogger());
+        Tuple2<String, Boolean> findPathResult = buildToSend.perform();
+        if (findPathResult != null) {
+            String buildPath = findPathResult.getFirst();
+            Boolean isArtifact = findPathResult.getSecond();
+
             listener.getLogger().println("Found the build at path: " + buildPath);
 
             // If the user only wants to check if the path was correct we don't call the Upload API
@@ -73,10 +77,12 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             } else {
                 // Then upload the build to DT
                 SendBuildAction sendBuild = new SendBuildAction(
-                    run.getEnvironment(listener).get("DATA_THEOREM_UPLOAD_API_KEY"),
-                    listener.getLogger()
+                        run.getEnvironment(listener).get("DATA_THEOREM_UPLOAD_API_KEY"),
+                        listener.getLogger(),
+                        workspace
                 );
-                SendBuildMessage sendBuildResult = sendBuild.perform(buildPath);
+
+                SendBuildMessage sendBuildResult = sendBuild.perform(buildPath, isArtifact);
                 if (!sendBuildResult.message.equals("")) {
                     listener.getLogger().println(sendBuildResult.message);
                 }
