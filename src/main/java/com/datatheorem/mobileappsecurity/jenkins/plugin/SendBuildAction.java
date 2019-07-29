@@ -267,8 +267,6 @@ class SendBuildAction {
 
         if (isArtifact) {
             // if the build is in the permanent artifact directory we can upload it directly
-
-
             HttpEntity entity = MultipartEntityBuilder.create().addBinaryBody("file", new File(buildPath)).build();
             requestUploadbuild.setEntity(entity);
 
