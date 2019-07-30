@@ -67,7 +67,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         Tuple2<String, Boolean> findPathResult = buildToSend.perform();
         if (findPathResult != null) {
             String buildPath = findPathResult.getFirst();
-            Boolean isArtifact = findPathResult.getSecond();
+            Boolean isBuildStoredInArtifactFolder = findPathResult.getSecond();
 
             listener.getLogger().println("Found the build at path: " + buildPath);
 
@@ -82,7 +82,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
                         workspace
                 );
 
-                SendBuildMessage sendBuildResult = sendBuild.perform(buildPath, isArtifact);
+                SendBuildMessage sendBuildResult = sendBuild.perform(buildPath, isBuildStoredInArtifactFolder);
                 if (!sendBuildResult.message.equals("")) {
                     listener.getLogger().println(sendBuildResult.message);
                 }

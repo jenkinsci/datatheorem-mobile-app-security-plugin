@@ -57,7 +57,7 @@ class FindBuildPathAction {
         /*
          *  Find the absolute path of a build name
          *  @return: absolute path to the build if exist, null otherwise
-         *  @return: boolean "isInArtifactDir" when the build is stored in the artifact directory
+         *  @return: boolean "isBuildStoredInArtifactFolder" when the build is stored in the artifact directory
          */
 
         for (Run<?, ?>.Artifact artifact : runner.getArtifacts()) {
