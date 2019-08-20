@@ -23,6 +23,10 @@ public class SendBuildToDataTheoremPublisherTest {
 
     private final String buildName = "t*est-*.apk";
     private final boolean dontUpload = true;
+    private final String proxyHostname = "127.0.0.1";
+    private final int proxyPort = 8080;
+    private final String proxyUsername = "test";
+    private final String proxyPassword = "pwd123456789" ;
 
     @Test
     public void testAddPluginToJob() throws Exception {
@@ -30,11 +34,15 @@ public class SendBuildToDataTheoremPublisherTest {
          * Check if the plugin can be added has a publisher action to a jenkins job
          */
         FreeStyleProject job = jenkins.createFreeStyleProject();
-        SendBuildToDataTheoremPublisher sendBuilder = new SendBuildToDataTheoremPublisher(buildName, dontUpload);
+        SendBuildToDataTheoremPublisher sendBuilder = new SendBuildToDataTheoremPublisher(
+                buildName, dontUpload, proxyHostname, proxyPort, proxyUsername, proxyPassword
+        );
         job.getPublishersList().add(sendBuilder);
         job = jenkins.configRoundtrip(job);
 
-        SendBuildToDataTheoremPublisher lhs = new SendBuildToDataTheoremPublisher(buildName, dontUpload);
+        SendBuildToDataTheoremPublisher lhs = new SendBuildToDataTheoremPublisher(
+                buildName, dontUpload, proxyHostname, proxyPort, proxyUsername, proxyPassword
+        );
         jenkins.assertEqualDataBoundBeans(lhs, job.getPublishersList().get(0));
     }
 
@@ -50,7 +58,9 @@ public class SendBuildToDataTheoremPublisherTest {
             job.getBuildersList().add(
                     new hudson.tasks.Shell("#!/bin/bash\n touch test-1.12.45.apk"));
 
-            SendBuildToDataTheoremPublisher sendBuilder = new SendBuildToDataTheoremPublisher(buildName, dontUpload);
+            SendBuildToDataTheoremPublisher sendBuilder = new SendBuildToDataTheoremPublisher(
+                    buildName, dontUpload, proxyHostname, proxyPort, proxyUsername, proxyPassword
+            );
             job.getPublishersList().add(sendBuilder);
 
             FreeStyleBuild completedBuild = jenkins.assertBuildStatusSuccess(job.scheduleBuild2(0));
@@ -72,7 +82,9 @@ public class SendBuildToDataTheoremPublisherTest {
                     new hudson.tasks.Shell("#!/bin/bash\n " +
                             "touch test.apk"));
 
-            SendBuildToDataTheoremPublisher sendBuilder = new SendBuildToDataTheoremPublisher(buildName, dontUpload);
+                    SendBuildToDataTheoremPublisher sendBuilder = new SendBuildToDataTheoremPublisher(
+                            buildName, dontUpload, proxyHostname, proxyPort, proxyUsername, proxyPassword
+                    );
             job.getPublishersList().add(sendBuilder);
 
             FreeStyleBuild completedBuild = jenkins.assertBuildStatus(Result.UNSTABLE, job.scheduleBuild2(0));

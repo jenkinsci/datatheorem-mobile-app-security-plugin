@@ -31,15 +31,29 @@ import java.io.IOException;
 public class SendBuildToDataTheoremPublisher extends Publisher implements SimpleBuildStep {
     private final String buildToUpload;
     private final boolean dontUpload;
+    private final String proxyHostname;
+    private final int proxyPort;
+    private final String proxyUsername;
+    private final String proxyPassword;
 
     @DataBoundConstructor
-    public SendBuildToDataTheoremPublisher(String buildToUpload, boolean dontUpload) {
+    public SendBuildToDataTheoremPublisher(
+            String buildToUpload,
+            boolean dontUpload,
+            String proxyHostname,
+            int proxyPort,
+            String proxyUsername,
+            String proxyPassword
+    ) {
         /*
         Bind the parameter value of the job configuration page
         */
         this.buildToUpload = buildToUpload;
         this.dontUpload = dontUpload;
-
+        this.proxyHostname = proxyHostname;
+        this.proxyPort = proxyPort;
+        this.proxyUsername = proxyUsername;
+        this.proxyPassword = proxyPassword;
     }
 
     @Override
@@ -49,7 +63,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             @Nonnull Launcher launcher,
             TaskListener listener
     ) throws InterruptedException, IOException {
-
+        SendBuildAction sendBuild;
         listener.getLogger().println("Data Theorem upload build plugin starting...");
         Result result = run.getResult();
         if (result != null && result.isWorseOrEqualTo(Result.FAILURE)) {
@@ -76,11 +90,28 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
                 listener.getLogger().println("Skipping upload... \"Don't Upload\" option enabled");
             } else {
                 // Then upload the build to DT
-                SendBuildAction sendBuild = new SendBuildAction(
-                        run.getEnvironment(listener).get("DATA_THEOREM_UPLOAD_API_KEY"),
-                        listener.getLogger(),
-                        workspace
-                );
+                if (proxyHostname == null || proxyHostname.isEmpty()) {
+                    listener.getLogger().println("No proxy configuration");
+
+                    sendBuild = new SendBuildAction(
+                            run.getEnvironment(listener).get("DATA_THEOREM_UPLOAD_API_KEY"),
+                            listener.getLogger(),
+                            workspace
+                    );
+                }
+                else {
+                        listener.getLogger().println("Proxy Configuration is : " + proxyHostname + ":" + proxyPort);
+
+                        sendBuild = new SendBuildAction(
+                            run.getEnvironment(listener).get("DATA_THEOREM_UPLOAD_API_KEY"),
+                            listener.getLogger(),
+                            workspace,
+                            proxyHostname,
+                            proxyPort,
+                            proxyUsername,
+                            proxyPassword
+                        );
+                    }
 
                 SendBuildMessage sendBuildResult = sendBuild.perform(buildPath, isBuildStoredInArtifactFolder);
                 if (!sendBuildResult.message.equals("")) {
@@ -116,6 +147,30 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
 
         // Required to get the last value when we update a job config
         return dontUpload;
+    }
+
+    public String getProxyHostname() {
+        // Required to get the last value when we update a job config
+
+        return proxyHostname;
+    }
+
+    public int getProxyPort() {
+        // Required to get the last value when we update a job config
+
+        return proxyPort;
+    }
+
+    public String getProxyUsername() {
+        // Required to get the last value when we update a job config
+
+        return proxyUsername;
+    }
+
+    public String getProxyPassword() {
+        // Required to get the last value when we update a job config
+
+        return proxyPassword;
     }
 
     @Symbol("Data Theorem")

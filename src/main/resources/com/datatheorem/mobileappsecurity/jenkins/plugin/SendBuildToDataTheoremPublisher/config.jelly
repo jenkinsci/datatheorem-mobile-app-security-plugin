@@ -12,5 +12,22 @@
 	    <f:entry title="${%Dont Upload Build}" field="dontUpload">
 		    <f:checkbox field="dontUpload"/>
 	    </f:entry>
+	        <f:entry title="">
+	     </f:entry>
+	    <f:entry title="" field="proxyConfig">
+	        <h2> Proxy Configuration </h2>
+        </f:entry>
+	    <f:entry title="${%Proxy Server Hostname}" field="proxyHostname">
+            <f:textbox />
+        </f:entry>
+	    <f:entry title="${%Proxy Server Port}" field="proxyPort">
+            <f:textbox />
+        </f:entry>
+	    <f:entry title="${%Username}" field="proxyUsername">
+            <f:textbox />
+        </f:entry>
+	    <f:entry title="${%Password}" field="proxyPassword">
+            <f:textbox />
+        </f:entry>
 	</f:advanced>
 </j:jelly>
