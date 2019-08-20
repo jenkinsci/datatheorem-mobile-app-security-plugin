@@ -223,11 +223,12 @@ class SendBuildAction {
         HttpClientBuilder clientBuilder = HttpClientBuilder.create();
         clientBuilder.useSystemProperties();
 
-        if (proxyHostname == null)
+        if (proxyHostname == null || proxyHostname.isEmpty())
             return clientBuilder.build();
 
         clientBuilder.setProxy(new HttpHost(proxyHostname, proxyPort));
-        if (proxyUsername == null)
+
+        if (proxyUsername == null || proxyUsername.isEmpty())
             return clientBuilder.build();
 
         // Add the User/Password proxy authentication
