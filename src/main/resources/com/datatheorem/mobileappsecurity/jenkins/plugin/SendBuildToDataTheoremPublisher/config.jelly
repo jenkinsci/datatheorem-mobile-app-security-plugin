@@ -29,5 +29,8 @@
 	    <f:entry title="${%Password}" field="proxyPassword">
             <f:password type="password"/>
         </f:entry>
+        <f:entry title="${%Allow unsecured connections}" field="proxyUnsecuredConnection">
+            <f:checkbox field="proxyUnsecuredConnection"/>
+        </f:entry>
 	</f:advanced>
 </j:jelly>

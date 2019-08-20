@@ -10,17 +10,25 @@ import org.apache.http.auth.NTCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.ProxyAuthenticationStrategy;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import java.io.*;
 import java.net.UnknownHostException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * Response message of SendBuildAction
@@ -64,6 +72,8 @@ class SendBuildAction {
     private final int proxyPort;
     private final String proxyUsername;
     private final String proxyPassword;
+    private final boolean proxyUnsecureConnection;
+
 
     SendBuildAction(String apiKey, PrintStream logger, FilePath workspace) {
         /*
@@ -80,6 +90,7 @@ class SendBuildAction {
         this.proxyPort = 0;
         this.proxyUsername = null;
         this.proxyPassword = null;
+        this.proxyUnsecureConnection = false;
     }
 
     SendBuildAction(String apiKey,
@@ -88,7 +99,8 @@ class SendBuildAction {
                     String proxyHostname,
                     int proxyPort,
                     String proxyUsername,
-                    String proxyPassword) {
+                    String proxyPassword,
+                    boolean proxyUnsecureConnection) {
         /*
          * Constructor of the SendBuildAction with a proxy setting
          * @param :
@@ -103,6 +115,7 @@ class SendBuildAction {
         this.proxyPort = proxyPort;
         this.proxyUsername = proxyUsername;
         this.proxyPassword = proxyPassword;
+        this.proxyUnsecureConnection = proxyUnsecureConnection;
     }
     public SendBuildMessage perform(String buildPath, Boolean isBuildStoredInArtifactFolder) {
         /*
@@ -228,6 +241,18 @@ class SendBuildAction {
 
         clientBuilder.setProxy(new HttpHost(proxyHostname, proxyPort));
 
+        if (proxyUnsecureConnection)
+            try {
+                logger.println("insecure connection");
+                SSLConnectionSocketFactory acceptAllCertificate = new SSLConnectionSocketFactory(
+                        SSLContexts.custom().loadTrustMaterial(null, new TrustSelfSignedStrategy()).build(),
+                        NoopHostnameVerifier.INSTANCE);
+
+                clientBuilder.setSSLSocketFactory(acceptAllCertificate);
+            } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
+                logger.println(e.getMessage());
+            }
+
         if (proxyUsername == null || proxyUsername.isEmpty())
             return clientBuilder.build();
 
@@ -239,6 +264,7 @@ class SendBuildAction {
         clientBuilder.setProxyAuthenticationStrategy(new ProxyAuthenticationStrategy());
 
         return clientBuilder.build();
+
     }
 
     HttpResponse uploadInitRequest() throws IOException {

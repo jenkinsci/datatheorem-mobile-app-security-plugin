@@ -35,6 +35,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
     private final int proxyPort;
     private final String proxyUsername;
     private final String proxyPassword;
+    private final boolean proxyUnsecuredConnection;
 
     @DataBoundConstructor
     public SendBuildToDataTheoremPublisher(
@@ -43,8 +44,8 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             String proxyHostname,
             int proxyPort,
             String proxyUsername,
-            String proxyPassword
-    ) {
+            String proxyPassword,
+            boolean proxyUnsecuredConnection) {
         /*
         Bind the parameter value of the job configuration page
         */
@@ -54,6 +55,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         this.proxyPort = proxyPort;
         this.proxyUsername = proxyUsername;
         this.proxyPassword = proxyPassword;
+        this.proxyUnsecuredConnection = proxyUnsecuredConnection;
     }
 
     @Override
@@ -109,7 +111,8 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
                             proxyHostname,
                             proxyPort,
                             proxyUsername,
-                            proxyPassword
+                            proxyPassword,
+                            proxyUnsecuredConnection
                         );
                     }
 
@@ -173,6 +176,11 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         return proxyPassword;
     }
 
+    public boolean getProxyUnsecuredConnection() {
+        // Required to get the last value when we update a job config
+
+        return proxyUnsecuredConnection;
+    }
     @Symbol("Data Theorem")
     @Extension
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
