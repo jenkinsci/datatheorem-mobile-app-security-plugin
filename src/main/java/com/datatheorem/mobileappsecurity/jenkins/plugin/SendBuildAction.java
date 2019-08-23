@@ -3,18 +3,32 @@ package com.datatheorem.mobileappsecurity.jenkins.plugin;
 
 import hudson.FilePath;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.auth.AuthScope;
+import org.apache.http.auth.NTCredentials;
+import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.ssl.NoopHostnameVerifier;
+import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
+import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.ProxyAuthenticationStrategy;
+import org.apache.http.ssl.SSLContextBuilder;
+import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import java.io.*;
 import java.net.UnknownHostException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 
 /**
  * Response message of SendBuildAction
@@ -53,7 +67,13 @@ class SendBuildAction {
     private final PrintStream logger; // Jenkins logger
     private final FilePath workspace;
     private String uploadUrl;
-    private String version = "1.1.0";
+    private String version = "1.2.0";
+    private final String proxyHostname;
+    private final int proxyPort;
+    private final String proxyUsername;
+    private final String proxyPassword;
+    private final boolean proxyUnsecureConnection;
+
 
     SendBuildAction(String apiKey, PrintStream logger, FilePath workspace) {
         /*
@@ -66,8 +86,37 @@ class SendBuildAction {
         this.apiKey = apiKey;
         this.logger = logger;
         this.workspace = workspace;
+        this.proxyHostname = null;
+        this.proxyPort = 0;
+        this.proxyUsername = null;
+        this.proxyPassword = null;
+        this.proxyUnsecureConnection = false;
     }
 
+    SendBuildAction(String apiKey,
+                    PrintStream logger,
+                    FilePath workspace,
+                    String proxyHostname,
+                    int proxyPort,
+                    String proxyUsername,
+                    String proxyPassword,
+                    boolean proxyUnsecureConnection) {
+        /*
+         * Constructor of the SendBuildAction with a proxy setting
+         * @param :
+         *   apiKey : Secret Upload API Key to access Data Theorem Upload API
+         *   logger : Jenkins Logger to show uploading steps on the console output
+         */
+
+        this.apiKey = apiKey;
+        this.logger = logger;
+        this.workspace = workspace;
+        this.proxyHostname = proxyHostname;
+        this.proxyPort = proxyPort;
+        this.proxyUsername = proxyUsername;
+        this.proxyPassword = proxyPassword;
+        this.proxyUnsecureConnection = proxyUnsecureConnection;
+    }
     public SendBuildMessage perform(String buildPath, Boolean isBuildStoredInArtifactFolder) {
         /*
          * Perform the SendBuildAction : send the build to Data Theorem Upload API
@@ -177,16 +226,54 @@ class SendBuildAction {
         }
     }
 
+    private HttpClient createAuthenticatedHttpClient(){
+        /*
+         * Create an http client to perform post request with or without a proxy
+         * @return:
+         *   The HttpClient of the endpoint
+         */
+
+        HttpClientBuilder clientBuilder = HttpClientBuilder.create();
+        clientBuilder.useSystemProperties();
+
+        if (proxyHostname == null || proxyHostname.isEmpty())
+            return clientBuilder.build();
+
+        clientBuilder.setProxy(new HttpHost(proxyHostname, proxyPort));
+
+        if (proxyUnsecureConnection)
+            try {
+                logger.println("insecure connection");
+                SSLConnectionSocketFactory acceptAllCertificate = new SSLConnectionSocketFactory(
+                        SSLContexts.custom().loadTrustMaterial(null, new TrustSelfSignedStrategy()).build(),
+                        NoopHostnameVerifier.INSTANCE);
+
+                clientBuilder.setSSLSocketFactory(acceptAllCertificate);
+            } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
+                logger.println(e.getMessage());
+            }
+
+        if (proxyUsername == null || proxyUsername.isEmpty())
+            return clientBuilder.build();
+
+        // Add the User/Password proxy authentication
+        NTCredentials ntCreds = new NTCredentials(proxyUsername, proxyPassword, "", "" );
+        CredentialsProvider credsProvider = new BasicCredentialsProvider();
+        credsProvider.setCredentials( new AuthScope(proxyHostname,proxyPort), ntCreds );
+        clientBuilder.setDefaultCredentialsProvider(credsProvider);
+        clientBuilder.setProxyAuthenticationStrategy(new ProxyAuthenticationStrategy());
+
+        return clientBuilder.build();
+
+    }
+
     HttpResponse uploadInitRequest() throws IOException {
         /*
          * Http call to upload_init endpoint of the Upload API
          * @return:
          *   The HTTPResponse of the endpoint
          */
-
-        HttpClient client = HttpClientBuilder.create().build();
-
-        // Create an http client to make the post request to upload_init endpoint
+        HttpClient client = createAuthenticatedHttpClient();
 
         String upload_init_url = "https://api.securetheorem.com/uploadapi/v1/upload_init";
         HttpPost requestUploadInit = new HttpPost(upload_init_url);
@@ -262,7 +349,7 @@ class SendBuildAction {
 
         // Create an http client to make the post request to upload_init endpoint
 
-        HttpClient client = HttpClientBuilder.create().build();
+        HttpClient client = createAuthenticatedHttpClient();
         HttpPost requestUploadbuild = new HttpPost(this.uploadUrl);
 
         if (isBuildStoredInArtifactFolder) {
