@@ -10,12 +10,10 @@ import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.util.FormValidation;
 import jenkins.tasks.SimpleBuildStep;
-import net.sf.json.JSONObject;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
-import org.kohsuke.stapler.StaplerRequest;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -262,17 +260,6 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         public boolean isApplicable(Class<? extends AbstractProject> aClass) {
             return true;
         }
-
-        @Override
-        public SendBuildToDataTheoremPublisher newInstance(StaplerRequest req, JSONObject formData) throws FormException {
-            return req.bindJSON(SendBuildToDataTheoremPublisher.class,formData);
-        }
-        @Override
-        public boolean configure(StaplerRequest req, JSONObject formData) throws Descriptor.FormException {
-            save();
-            return super.configure(req, formData);
-        }
-
     }
 
 
