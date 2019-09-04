@@ -67,7 +67,7 @@ class SendBuildAction {
     private final PrintStream logger; // Jenkins logger
     private final FilePath workspace;
     private String uploadUrl;
-    private String version = "1.2.0";
+    private String version = "1.3.0";
     private final String proxyHostname;
     private final int proxyPort;
     private final String proxyUsername;

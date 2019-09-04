@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+version 1.3.0
+-------------
+* New: The jenkins plugin is now DSL compatible
+
 version 1.2.0
 -------------
 * New: The jenkins plugin can now be configured to hit a specified proxy
