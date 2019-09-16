@@ -42,7 +42,7 @@ public class SendBuildToDataTheoremPublisherTest {
         job = jenkins.configRoundtrip(job);
 
         SendBuildToDataTheoremPublisher lhs = new SendBuildToDataTheoremPublisher(
-                buildName, dontUpload, proxyHostname, proxyPort, proxyUsername, "", proxyUnsecuredConnection);
+                buildName, dontUpload, proxyHostname, proxyPort, proxyUsername, proxyPassword, proxyUnsecuredConnection);
         jenkins.assertEqualDataBoundBeans(lhs, job.getPublishersList().get(0));
     }
 
