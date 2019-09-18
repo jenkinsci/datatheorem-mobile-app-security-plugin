@@ -107,12 +107,13 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
 
         SendBuildAction sendBuild;
         listener.getLogger().println("Data Theorem upload build plugin starting...");
+
         Result result = run.getResult();
-        if (result != null && result.isWorseOrEqualTo(Result.FAILURE)) {
-            listener.getLogger().println("Skipping upload because the build step failed");
-            return;
-        } else if (result != null && result.isWorseOrEqualTo(Result.UNSTABLE)) {
-            listener.getLogger().println("Skipping upload because the build is unstable");
+        if (result != null && result.isWorseOrEqualTo(Result.UNSTABLE)) {
+            listener.getLogger().println(
+                    "Skipping Data Theorem CI/CD because the previous step result is: " + Result.UNSTABLE.toString()
+            );
+            run.setResult(result);
             return;
         }
 
@@ -121,53 +122,63 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         // First find the path to the build to upload
         FindBuildPathAction buildToSend = new FindBuildPathAction(this.buildToUpload, workspace, run, listener.getLogger());
         Tuple2<String, Boolean> findPathResult = buildToSend.perform();
-        if (findPathResult != null) {
-            String buildPath = findPathResult.getFirst();
-            Boolean isBuildStoredInArtifactFolder = findPathResult.getSecond();
-
-            listener.getLogger().println("Found the build at path: " + buildPath);
-
-            // If the user only wants to check if the path was correct we don't call the Upload API
-            if (dontUpload) {
-                listener.getLogger().println("Skipping upload... \"Don't Upload\" option enabled");
-            } else {
-                // Then upload the build to DT
-                if (proxyHostname == null || proxyHostname.isEmpty()) {
-                    listener.getLogger().println("No proxy configuration");
-
-                    sendBuild = new SendBuildAction(
-                            getSecretKey(run, listener),
-                            listener.getLogger(),
-                            workspace
-                    );
-                }
-                else {
-                    listener.getLogger().println("Proxy Configuration is : " + proxyHostname + ":" + proxyPort);
-
-                    sendBuild = new SendBuildAction(
-                            getSecretKey(run, listener),
-                            listener.getLogger(),
-                            workspace,
-                            proxyHostname,
-                            proxyPort,
-                            proxyUsername,
-                            proxyPassword.getPlainText(),
-                            proxyUnsecuredConnection
-                    );
-                }
-
-                SendBuildMessage sendBuildResult = sendBuild.perform(buildPath, isBuildStoredInArtifactFolder);
-                if (!sendBuildResult.message.equals("")) {
-                    listener.getLogger().println(sendBuildResult.message);
-                }
-                if (!sendBuildResult.success) {
-                    run.setResult(Result.UNSTABLE);
-                }
-            }
-        } else {
+        if (findPathResult == null) {
             listener.getLogger().println("Unable to find any build with name : " + this.buildToUpload);
             run.setResult(Result.UNSTABLE);
+            return;
         }
+
+        // Check if the build is in artifact folder or the workspace
+        String buildPath = findPathResult.getFirst();
+        Boolean isBuildStoredInArtifactFolder = findPathResult.getSecond();
+
+        listener.getLogger().println("Found the build at path: " + buildPath);
+
+        // If the user only wants to check if the path was correct we don't call the Upload API
+        if (dontUpload) {
+            listener.getLogger().println("Skipping upload... \"Don't Upload\" option enabled");
+            run.setResult(Result.SUCCESS);
+            return;
+        }
+
+        // Then upload the build to DT
+        if (proxyHostname == null || proxyHostname.isEmpty()) {
+            listener.getLogger().println("No proxy configuration");
+
+            sendBuild = new SendBuildAction(
+                    getSecretKey(run, listener),
+                    listener.getLogger(),
+                    workspace
+            );
+        }
+        else {
+            listener.getLogger().println("Proxy Configuration is : " + proxyHostname + ":" + proxyPort);
+
+            sendBuild = new SendBuildAction(
+                    getSecretKey(run, listener),
+                    listener.getLogger(),
+                    workspace,
+                    proxyHostname,
+                    proxyPort,
+                    proxyUsername,
+                    proxyPassword.getPlainText(),
+                    proxyUnsecuredConnection
+            );
+        }
+
+        SendBuildMessage sendBuildResult = sendBuild.perform(
+                buildPath,
+                isBuildStoredInArtifactFolder
+        );
+
+        if (!sendBuildResult.message.isEmpty()) {
+            listener.getLogger().println(sendBuildResult.message);
+        }
+        if (!sendBuildResult.success) {
+            run.setResult(Result.UNSTABLE);
+            return;
+        }
+
        run.setResult(Result.SUCCESS);
     }
 
