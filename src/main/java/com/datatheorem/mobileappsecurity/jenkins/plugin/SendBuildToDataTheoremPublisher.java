@@ -265,6 +265,17 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
 
         }
 
+        public FormValidation doCheckSourceMapToUpload(
+                @QueryParameter(value = "sourceMapToUpload") String sourceMapName,
+                @QueryParameter(value = "buildToUpload") String buildName
+                )
+        {
+            if (buildName.toLowerCase().endsWith(".apk") || sourceMapName.isEmpty())
+                return FormValidation.ok();
+            if (!buildName.toLowerCase().endsWith(".txt"))
+                return FormValidation.warning("source map file should ends with .txt");
+            return FormValidation.warning("source map file should only be uploaded with an apk file");
+        }
         @Override
         public String getDisplayName() {
             return "Upload build to Data Theorem";
