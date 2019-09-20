@@ -17,6 +17,7 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
+import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 
@@ -32,6 +33,7 @@ import java.io.Serializable;
 
 public class SendBuildToDataTheoremPublisher extends Publisher implements SimpleBuildStep, Serializable {
     private  String buildToUpload;
+    private  String sourceMapToUpload;
     private final boolean dontUpload;
     private final String proxyHostname;
     private final int proxyPort;
@@ -43,6 +45,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
     @DataBoundConstructor
     public SendBuildToDataTheoremPublisher(
             String buildToUpload,
+            String sourceMapToUpload,
             boolean dontUpload,
             String proxyHostname,
             int proxyPort,
@@ -54,6 +57,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         * Bind the parameter value of the job configuration page
         */
         this.buildToUpload = buildToUpload;
+        this.sourceMapToUpload = sourceMapToUpload;
         this.dontUpload = dontUpload;
         this.proxyHostname = proxyHostname;
         this.proxyPort = proxyPort;
@@ -105,6 +109,10 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             TaskListener listener
     ) throws InterruptedException, IOException {
 
+
+
+        listener.getLogger().println(workspace.isRemote());
+
         SendBuildAction sendBuild;
         listener.getLogger().println("Data Theorem upload build plugin starting...");
 
@@ -128,11 +136,34 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             return;
         }
 
+
         // Check if the build is in artifact folder or the workspace
         String buildPath = findPathResult.getFirst();
         Boolean isBuildStoredInArtifactFolder = findPathResult.getSecond();
-
         listener.getLogger().println("Found the build at path: " + buildPath);
+        // Find the path to the mapping file if nrequested
+        listener.getLogger().println(workspace.child(buildPath).isRemote());
+        listener.getLogger().println(workspace.isRemote());
+
+        listener.getLogger().println(workspace.child(buildPath).getChannel());
+        listener.getLogger().println(workspace.child(buildPath).toComputer());
+        listener.getLogger().println(workspace.child(buildPath).getChannel());
+        listener.getLogger().println(workspace.child(buildPath).toComputer());
+        listener.getLogger().println(workspace.child(buildPath).read());
+
+
+        String findSourceMapResult = null;
+        if (!(sourceMapToUpload == null || sourceMapToUpload.isEmpty())){
+            FindSourceMapPathAction findSourceMapPathAction = new FindSourceMapPathAction(this.sourceMapToUpload, workspace, run, listener.getLogger());
+             findSourceMapResult = findSourceMapPathAction.perform();
+            if (findSourceMapResult == null) {
+                listener.getLogger().println("Unable to find any mapping file with name : " + this.sourceMapToUpload);
+                run.setResult(Result.UNSTABLE);
+                return;
+            }
+            listener.getLogger().println("Found the mapping file at path: " + findSourceMapResult);
+
+        }
 
         // If the user only wants to check if the path was correct we don't call the Upload API
         if (dontUpload) {
@@ -168,6 +199,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
 
         SendBuildMessage sendBuildResult = sendBuild.perform(
                 buildPath,
+                findSourceMapResult,
                 isBuildStoredInArtifactFolder
         );
 
@@ -196,6 +228,12 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
 
         // Required to get the last value when we update a job config
         return buildToUpload;
+    }
+
+    public String getSourceMapToUpload() {
+
+        // Required to get the last value when we update a job config
+        return sourceMapToUpload;
     }
 
     public boolean isDontUpload() {
@@ -234,7 +272,6 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         return proxyUnsecuredConnection;
     }
 
-
     @Extension
     // Define the symbols needed to call the jenkins plugin in a DSL pipeline
     @Symbol({
@@ -270,11 +307,14 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
                 @QueryParameter(value = "buildToUpload") String buildName
                 )
         {
-            if (buildName.toLowerCase().endsWith(".apk") || sourceMapName.isEmpty())
+            if (sourceMapName.isEmpty())
                 return FormValidation.ok();
-            if (!buildName.toLowerCase().endsWith(".txt"))
+            if (!sourceMapName.toLowerCase().endsWith(".txt"))
                 return FormValidation.warning("source map file should ends with .txt");
-            return FormValidation.warning("source map file should only be uploaded with an apk file");
+            if (!buildName.toLowerCase().endsWith(".apk"))
+                return FormValidation.warning("source map file should only be uploaded with an apk file");
+
+            return FormValidation.ok();
         }
         @Override
         public String getDisplayName() {

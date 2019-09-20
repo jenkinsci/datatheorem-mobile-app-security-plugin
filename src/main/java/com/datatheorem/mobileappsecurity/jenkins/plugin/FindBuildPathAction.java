@@ -43,6 +43,7 @@ class FindBuildPathAction {
         this.logger = logger;
     }
 
+
     private boolean isSimilarToBuildName(String fileName) {
         /*
          * Test if the filename respects the buildName pattern
@@ -82,24 +83,4 @@ class FindBuildPathAction {
         return null;
     }
 
-    private static final class ListFiles extends MasterToSlaveFileCallable<Map<String, String>> {
-        /*
-         * Jenkins core way to get the relative path of all files from workspace directory
-         * of either jenkins local server or external secondary agent
-         */
-
-        @Override
-        public Map<String, String> invoke(File basedir, VirtualChannel channel) {
-            Map<String, String> r = new HashMap<>();
-
-            FileSet fileSet = Util.createFileSet(basedir, "", "");
-            fileSet.setCaseSensitive(true);
-
-            for (String f : fileSet.getDirectoryScanner().getIncludedFiles()) {
-                f = f.replace(File.separatorChar, '/');
-                r.put(f, f);
-            }
-            return r;
-        }
-    }
 }
