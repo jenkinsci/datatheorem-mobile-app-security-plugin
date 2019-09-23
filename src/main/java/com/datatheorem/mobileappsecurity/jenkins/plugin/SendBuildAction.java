@@ -1,6 +1,7 @@
 package com.datatheorem.mobileappsecurity.jenkins.plugin;
 
 
+import com.datatheorem.mobileappsecurity.jenkins.plugin.utils.RemoteAgentStreamBody;
 import hudson.FilePath;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -14,15 +15,16 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.conn.ssl.TrustSelfSignedStrategy;
 import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.ProxyAuthenticationStrategy;
+import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.ssl.SSLContexts;
 import org.apache.http.util.EntityUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
-
 import java.io.*;
 import java.net.UnknownHostException;
 import java.security.KeyManagementException;
@@ -346,11 +348,15 @@ class SendBuildAction {
         // Create an http client to make the post request to upload_init endpoint
 
         HttpClient client = createAuthenticatedHttpClient();
-        HttpPost requestUploadbuild = new HttpPost(this.uploadUrl);
+        HttpPost requestUploadbuild = new HttpPost(uploadUrl);//"http://enjd55nzxobh.x.pipedream.net");
         requestUploadbuild.addHeader("User-Agent", "Jenkins Upload API Plugin " + version);
 
         MultipartEntityBuilder entity_builder = MultipartEntityBuilder.create();
-
+        entity_builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+        entity_builder.setContentType(ContentType.create(
+                "multipart/form-data",
+                new BasicNameValuePair("boundary","\"jenkinsautouploadboundary\""))
+        );
         if (sourceMapPath != null)
             AddContentToEntity(entity_builder, sourceMapPath, "sourcemap", ContentType.DEFAULT_TEXT);
 
@@ -371,27 +377,15 @@ class SendBuildAction {
 
     private void AddContentToEntity(MultipartEntityBuilder entityBuilder, String binaryPath, String bodyName, ContentType contentType) throws IOException, InterruptedException {
 
-        if (!workspace.child(binaryPath).isRemote())
-        {
+        if (!workspace.child(binaryPath).isRemote()) {
             entityBuilder.addBinaryBody(bodyName, new File(workspace.child(binaryPath).toURI()));
             return;
         }
-
-        ByteArrayOutputStream StreamToSend = new ByteArrayOutputStream();
-        try {
-           workspace.child(binaryPath).copyTo(StreamToSend);
-        } catch (IOException | InterruptedException e) {
-            StreamToSend.close();
-           throw e;
-        }
-
-        //final RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
-        entityBuilder.addBinaryBody(
-                bodyName,
-                StreamToSend.toByteArray(),
+        entityBuilder.addPart(bodyName, new RemoteAgentStreamBody(
+                workspace.child(binaryPath),
                 contentType,
                 workspace.child(binaryPath).getName()
-        );
-        StreamToSend.close();
+        ));
     }
 }
+

@@ -17,7 +17,6 @@ import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.Nonnull;
-import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 
@@ -140,17 +139,6 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         // Check if the build is in artifact folder or the workspace
         String buildPath = findPathResult.getFirst();
         Boolean isBuildStoredInArtifactFolder = findPathResult.getSecond();
-        listener.getLogger().println("Found the build at path: " + buildPath);
-        // Find the path to the mapping file if nrequested
-        listener.getLogger().println(workspace.child(buildPath).isRemote());
-        listener.getLogger().println(workspace.isRemote());
-
-        listener.getLogger().println(workspace.child(buildPath).getChannel());
-        listener.getLogger().println(workspace.child(buildPath).toComputer());
-        listener.getLogger().println(workspace.child(buildPath).getChannel());
-        listener.getLogger().println(workspace.child(buildPath).toComputer());
-        listener.getLogger().println(workspace.child(buildPath).read());
-
 
         String findSourceMapResult = null;
         if (!(sourceMapToUpload == null || sourceMapToUpload.isEmpty())){

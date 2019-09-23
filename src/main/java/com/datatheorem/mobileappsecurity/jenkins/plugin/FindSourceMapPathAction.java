@@ -1,6 +1,6 @@
 package com.datatheorem.mobileappsecurity.jenkins.plugin;
 
-import groovy.lang.Tuple2;
+import com.datatheorem.mobileappsecurity.jenkins.plugin.utils.ListFiles;
 import hudson.FilePath;
 import hudson.model.Run;
 

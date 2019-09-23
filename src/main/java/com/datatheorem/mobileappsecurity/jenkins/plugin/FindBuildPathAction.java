@@ -1,22 +1,15 @@
 package com.datatheorem.mobileappsecurity.jenkins.plugin;
 
+import com.datatheorem.mobileappsecurity.jenkins.plugin.utils.ListFiles;
 import groovy.lang.Tuple2;
 import hudson.FilePath;
-import hudson.Util;
 import hudson.model.Run;
-import hudson.remoting.VirtualChannel;
-import jenkins.MasterToSlaveFileCallable;
-import org.apache.tools.ant.types.FileSet;
 
 import java.io.*;
 import java.nio.file.FileSystems;
-import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 
 /**
