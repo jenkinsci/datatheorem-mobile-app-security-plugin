@@ -9,6 +9,7 @@ import hudson.tasks.BuildStepDescriptor;
 import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.util.FormValidation;
+import hudson.util.Secret;
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -35,7 +36,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
     private final String proxyHostname;
     private final int proxyPort;
     private final String proxyUsername;
-    private final String proxyPassword;
+    private Secret proxyPassword = null;
     private final boolean proxyUnsecuredConnection;
     private String dataTheoremUploadApiKey = null;
 
@@ -57,7 +58,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         this.proxyHostname = proxyHostname;
         this.proxyPort = proxyPort;
         this.proxyUsername = proxyUsername;
-        this.proxyPassword = proxyPassword;
+        this.proxyPassword = Secret.fromString(proxyPassword);
         this.proxyUnsecuredConnection = proxyUnsecuredConnection;
     }
 
@@ -103,6 +104,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             @Nonnull Launcher launcher,
             TaskListener listener
     ) throws InterruptedException, IOException {
+
         SendBuildAction sendBuild;
         listener.getLogger().println("Data Theorem upload build plugin starting...");
         Result result = run.getResult();
@@ -149,7 +151,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
                             proxyHostname,
                             proxyPort,
                             proxyUsername,
-                            proxyPassword,
+                            proxyPassword.getPlainText(),
                             proxyUnsecuredConnection
                     );
                 }
@@ -166,6 +168,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             listener.getLogger().println("Unable to find any build with name : " + this.buildToUpload);
             run.setResult(Result.UNSTABLE);
         }
+       run.setResult(Result.SUCCESS);
     }
 
     @Override
@@ -208,10 +211,10 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         return proxyUsername;
     }
 
-    public String getProxyPassword() {
-        // Required to get the last value when we update a job config
+    public Secret getProxyPassword() {
+        // Returns the encrypted value of the field
 
-        return proxyPassword;
+        return this.proxyPassword;
     }
 
     public boolean getProxyUnsecuredConnection() {
