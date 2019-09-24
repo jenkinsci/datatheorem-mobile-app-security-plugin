@@ -9,7 +9,7 @@
         <f:textbox />
     </f:entry>
     <f:advanced>
-	    <f:entry title="${%Android Mapping File}" field="sourceMapToUpload">
+	    <f:entry title="${%Android Mapping File}" field="mappingFileToUpload">
 		    <f:textbox />
 		 </f:entry>
 	     <f:entry title="${%Dont Upload Build}" field="dontUpload">

@@ -32,7 +32,7 @@ import java.io.Serializable;
 
 public class SendBuildToDataTheoremPublisher extends Publisher implements SimpleBuildStep, Serializable {
     private  String buildToUpload;
-    private  String sourceMapToUpload;
+    private  String mappingFileToUpload;
     private final boolean dontUpload;
     private final String proxyHostname;
     private final int proxyPort;
@@ -44,7 +44,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
     @DataBoundConstructor
     public SendBuildToDataTheoremPublisher(
             String buildToUpload,
-            String sourceMapToUpload,
+            String mappingFileToUpload,
             boolean dontUpload,
             String proxyHostname,
             int proxyPort,
@@ -56,7 +56,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         * Bind the parameter value of the job configuration page
         */
         this.buildToUpload = buildToUpload;
-        this.sourceMapToUpload = sourceMapToUpload;
+        this.mappingFileToUpload = mappingFileToUpload;
         this.dontUpload = dontUpload;
         this.proxyHostname = proxyHostname;
         this.proxyPort = proxyPort;
@@ -135,11 +135,11 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         Boolean isBuildStoredInArtifactFolder = findPathResult.getSecond();
 
         String findSourceMapResult = null;
-        if (!(sourceMapToUpload == null || sourceMapToUpload.isEmpty())){
-            FindSourceMapPathAction findSourceMapPathAction = new FindSourceMapPathAction(this.sourceMapToUpload, workspace, listener.getLogger());
+        if (!(mappingFileToUpload == null || mappingFileToUpload.isEmpty())){
+            FindSourceMapPathAction findSourceMapPathAction = new FindSourceMapPathAction(this.mappingFileToUpload, workspace, listener.getLogger());
              findSourceMapResult = findSourceMapPathAction.perform();
             if (findSourceMapResult == null) {
-                listener.getLogger().println("Unable to find any mapping file with name : " + this.sourceMapToUpload);
+                listener.getLogger().println("Unable to find any mapping file with name : " + this.mappingFileToUpload);
                 run.setResult(Result.UNSTABLE);
                 return;
             }
@@ -208,10 +208,10 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         return buildToUpload;
     }
 
-    public String getSourceMapToUpload() {
+    public String getmappingFileToUpload() {
 
         // Required to get the last value when we update a job config
-        return sourceMapToUpload;
+        return mappingFileToUpload;
     }
 
     public boolean isDontUpload() {
@@ -255,6 +255,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
     @Symbol({
             "sendBuildToDataTheorem",
             "buildToUpload",
+            "mappingFileToUpload",
             "dontUpload",
             "proxyHostname",
             "proxyPort",
@@ -279,8 +280,8 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             return FormValidation.ok();
         }
 
-        public FormValidation doCheckSourceMapToUpload(
-                @QueryParameter(value = "sourceMapToUpload") String sourceMapName,
+        public FormValidation doCheckmappingFileToUpload(
+                @QueryParameter(value = "mappingFileToUpload") String sourceMapName,
                 @QueryParameter(value = "buildToUpload") String buildName
                 )
         {
