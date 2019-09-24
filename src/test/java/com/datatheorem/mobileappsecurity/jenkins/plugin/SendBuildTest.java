@@ -213,11 +213,11 @@ public class SendBuildTest {
         InputStream inputStream = new ByteArrayInputStream("{\"status\":\"ok\",\"name\":\"AndroidCodingExercise\"}".getBytes());
         entity.setContent(inputStream);
         response.setEntity(entity);
-        EasyMock.expect(uploadMock.uploadBuildRequest("AndroidCodingExercise", true))
+        EasyMock.expect(uploadMock.uploadBuildRequest("AndroidCodingExercise", null, true))
                 .andReturn(response);
 
         replay(uploadMock);
-        SendBuildMessage uploadBuildMessage = uploadMock.uploadBuild("AndroidCodingExercise", true);
+        SendBuildMessage uploadBuildMessage = uploadMock.uploadBuild("AndroidCodingExercise", null, true);
 
         Assert.assertEquals(
                 uploadBuildMessage.message,
@@ -250,11 +250,11 @@ public class SendBuildTest {
         InputStream inputStream = new ByteArrayInputStream("{\"status\":\"ok\",\"name\":\"AndroidCodingExercise\"}".getBytes());
         entity.setContent(inputStream);
         response.setEntity(entity);
-        EasyMock.expect(uploadMock.uploadBuildRequest("AndroidCodingExercise", true))
+        EasyMock.expect(uploadMock.uploadBuildRequest("AndroidCodingExercise", null, true))
                 .andReturn(response);
 
         replay(uploadMock);
-        SendBuildMessage uploadBuildMessage = uploadMock.uploadBuild("AndroidCodingExercise", true);
+        SendBuildMessage uploadBuildMessage = uploadMock.uploadBuild("AndroidCodingExercise", null, true);
 
         Assert.assertFalse(uploadBuildMessage.success);
 
@@ -284,11 +284,11 @@ public class SendBuildTest {
         InputStream inputStream = new ByteArrayInputStream("{\"status\":\"ok\",\"name\":\"AndroidCodingExercise\"}".getBytes());
         entity.setContent(inputStream);
         response.setEntity(entity);
-        EasyMock.expect(uploadMock.uploadBuildRequest("AndroidCodingExercise", true))
+        EasyMock.expect(uploadMock.uploadBuildRequest("AndroidCodingExercise", null, true))
                 .andThrow(new IOException());
 
         replay(uploadMock);
-        SendBuildMessage uploadBuildMessage = uploadMock.uploadBuild("AndroidCodingExercise", true);
+        SendBuildMessage uploadBuildMessage = uploadMock.uploadBuild("AndroidCodingExercise", null, true);
         Assert.assertEquals(uploadBuildMessage.message, "Data Theorem upload build returned an error: IOException: null");
 
         Assert.assertFalse(uploadBuildMessage.success);
@@ -311,7 +311,7 @@ public class SendBuildTest {
                 .createMock();
 
         replay(uploadMock);
-        SendBuildMessage sendBuildMessage = uploadMock.perform("foo.apk", true);
+        SendBuildMessage sendBuildMessage = uploadMock.perform("foo.apk", null,true);
 
         Assert.assertEquals(
                 sendBuildMessage.message,
@@ -338,7 +338,7 @@ public class SendBuildTest {
                 .createMock();
 
         replay(uploadMock);
-        SendBuildMessage sendBuildMessage = uploadMock.perform("foo.apk", true);
+        SendBuildMessage sendBuildMessage = uploadMock.perform("foo.apk", null, true);
 
         Assert.assertEquals(
                 sendBuildMessage.message,
@@ -364,7 +364,7 @@ public class SendBuildTest {
                 .createMock();
 
         replay(uploadMock);
-        SendBuildMessage sendBuildMessage = uploadMock.perform("foo.apk", true );
+        SendBuildMessage sendBuildMessage = uploadMock.perform("foo.apk", null,true );
 
         Assert.assertEquals(
                 sendBuildMessage.message,
