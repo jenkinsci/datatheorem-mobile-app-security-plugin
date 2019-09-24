@@ -108,10 +108,6 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             TaskListener listener
     ) throws InterruptedException, IOException {
 
-
-
-        listener.getLogger().println(workspace.isRemote());
-
         SendBuildAction sendBuild;
         listener.getLogger().println("Data Theorem upload build plugin starting...");
 
@@ -125,7 +121,6 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         }
 
         listener.getLogger().println("Uploading the build to Data Theorem : " + this.buildToUpload);
-
         // First find the path to the build to upload
         FindBuildPathAction buildToSend = new FindBuildPathAction(this.buildToUpload, workspace, run, listener.getLogger());
         Tuple2<String, Boolean> findPathResult = buildToSend.perform();
@@ -135,14 +130,13 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             return;
         }
 
-
         // Check if the build is in artifact folder or the workspace
         String buildPath = findPathResult.getFirst();
         Boolean isBuildStoredInArtifactFolder = findPathResult.getSecond();
 
         String findSourceMapResult = null;
         if (!(sourceMapToUpload == null || sourceMapToUpload.isEmpty())){
-            FindSourceMapPathAction findSourceMapPathAction = new FindSourceMapPathAction(this.sourceMapToUpload, workspace, run, listener.getLogger());
+            FindSourceMapPathAction findSourceMapPathAction = new FindSourceMapPathAction(this.sourceMapToUpload, workspace, listener.getLogger());
              findSourceMapResult = findSourceMapPathAction.perform();
             if (findSourceMapResult == null) {
                 listener.getLogger().println("Unable to find any mapping file with name : " + this.sourceMapToUpload);
@@ -150,7 +144,6 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
                 return;
             }
             listener.getLogger().println("Found the mapping file at path: " + findSourceMapResult);
-
         }
 
         // If the user only wants to check if the path was correct we don't call the Upload API
@@ -184,13 +177,11 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
                     proxyUnsecuredConnection
             );
         }
-
         SendBuildMessage sendBuildResult = sendBuild.perform(
                 buildPath,
                 findSourceMapResult,
                 isBuildStoredInArtifactFolder
         );
-
         if (!sendBuildResult.message.isEmpty()) {
             listener.getLogger().println(sendBuildResult.message);
         }
@@ -198,7 +189,6 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             run.setResult(Result.UNSTABLE);
             return;
         }
-
        run.setResult(Result.SUCCESS);
     }
 
@@ -287,7 +277,6 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             if (value.length() < 5)
                 return FormValidation.error("The build name is too short");
             return FormValidation.ok();
-
         }
 
         public FormValidation doCheckSourceMapToUpload(
@@ -304,6 +293,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
 
             return FormValidation.ok();
         }
+
         @Override
         public String getDisplayName() {
             return "Upload build to Data Theorem";

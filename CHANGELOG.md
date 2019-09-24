@@ -1,7 +1,7 @@
 CHANGELOG
 =========
 
-version 2.1.0
+version 2.0.0
 -------------
 * New: The jenkins plugin can now update a generated source map file with obfuscated apk
 

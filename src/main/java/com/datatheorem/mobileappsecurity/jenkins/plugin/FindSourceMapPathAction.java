@@ -14,13 +14,11 @@ import java.util.Collection;
 public class FindSourceMapPathAction {
     final String sourceMapName;
     private final FilePath workspace;
-    private final Run<?, ?> runner;
     private final PrintStream logger;
 
-    public FindSourceMapPathAction(String sourceMapName, FilePath workspace, Run<?, ?> runner, PrintStream logger) {
+    public FindSourceMapPathAction(String sourceMapName, FilePath workspace, PrintStream logger) {
         this.sourceMapName = sourceMapName;
         this.workspace = workspace;
-        this.runner = runner;
         this.logger = logger;
     }
 

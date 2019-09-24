@@ -16,6 +16,7 @@ import java.nio.file.Files;
 import java.util.Map;
 
 public class RemoteAgentStreamBody extends AbstractContentBody {
+    // Custom Content Body to stream a file store in a remote agent to the local request
     private FilePath filePath;
     private final String filename;
 
@@ -44,9 +45,7 @@ public class RemoteAgentStreamBody extends AbstractContentBody {
     public long getContentLength() {
         try {
             return filePath.length();
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
         return -1L;
@@ -61,6 +60,7 @@ public class RemoteAgentStreamBody extends AbstractContentBody {
     }
 
     private static class CopyToCallable extends MasterToSlaveFileCallable<Map<String, String>> {
+        // Modified version of FilePath.CopyTo
         private final RemoteOutputStream out;
 
         CopyToCallable(OutputStream out) {
@@ -70,6 +70,7 @@ public class RemoteAgentStreamBody extends AbstractContentBody {
         public Map<String, String> invoke(File f, VirtualChannel channel) throws IOException {
 
             InputStream fis = Files.newInputStream(f.toPath());
+            // Use of copyLarge to stream big files
             org.apache.commons.io.IOUtils.copyLarge(fis, this.out);
             return null;
         }
