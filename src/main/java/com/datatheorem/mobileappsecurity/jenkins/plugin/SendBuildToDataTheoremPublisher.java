@@ -287,9 +287,9 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             if (sourceMapName.isEmpty())
                 return FormValidation.ok();
             if (!sourceMapName.toLowerCase().endsWith(".txt"))
-                return FormValidation.warning("source map file should ends with .txt");
+                return FormValidation.warning("mapping file should ends with .txt");
             if (!buildName.toLowerCase().endsWith(".apk"))
-                return FormValidation.warning("source map file should only be uploaded with an apk file");
+                return FormValidation.warning("mapping file should only be uploaded with an apk file");
 
             return FormValidation.ok();
         }

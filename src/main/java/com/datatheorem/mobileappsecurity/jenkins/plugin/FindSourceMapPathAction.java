@@ -24,7 +24,7 @@ public class FindSourceMapPathAction {
 
     private boolean isSimilarToSourceMapName(String fileName) {
         /*
-         * Test if the filename respects the buildName pattern
+         * Test if the filename respects the source map name pattern
          */
         PathMatcher matcher =
                 FileSystems.getDefault().getPathMatcher("glob:" + sourceMapName);
