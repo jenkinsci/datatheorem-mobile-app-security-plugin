@@ -239,11 +239,6 @@ class SendBuildAction {
         HttpClientBuilder clientBuilder = HttpClientBuilder.create();
         clientBuilder.useSystemProperties();
 
-        if (proxyHostname == null || proxyHostname.isEmpty())
-            return clientBuilder.build();
-
-        clientBuilder.setProxy(new HttpHost(proxyHostname, proxyPort));
-
         if (proxyUnsecureConnection)
             try {
                 logger.println("insecure connection");
@@ -255,6 +250,11 @@ class SendBuildAction {
             } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
                 logger.println(e.getMessage());
             }
+
+        if (proxyHostname == null || proxyHostname.isEmpty())
+            return clientBuilder.build();
+
+        clientBuilder.setProxy(new HttpHost(proxyHostname, proxyPort));
 
         if (proxyUsername == null || proxyUsername.isEmpty())
             return clientBuilder.build();
