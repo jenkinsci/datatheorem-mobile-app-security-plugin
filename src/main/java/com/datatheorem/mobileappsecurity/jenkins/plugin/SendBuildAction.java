@@ -241,7 +241,7 @@ class SendBuildAction {
 
         if (proxyUnsecureConnection)
             try {
-                logger.println("insecure connection");
+                this.logger.println("Insecure connection option is check: bypassing SSL Validation");
                 SSLConnectionSocketFactory acceptAllCertificate = new SSLConnectionSocketFactory(
                         SSLContexts.custom().loadTrustMaterial(null, new TrustSelfSignedStrategy()).build(),
                         NoopHostnameVerifier.INSTANCE);
@@ -256,8 +256,12 @@ class SendBuildAction {
 
         clientBuilder.setProxy(new HttpHost(proxyHostname, proxyPort));
 
-        if (proxyUsername == null || proxyUsername.isEmpty())
+        if (proxyUsername == null || proxyUsername.isEmpty()) {
+            this.logger.println("Proxy has no username/password authentification");
             return clientBuilder.build();
+        }
+
+        this.logger.println("Proxy is set using username/password authentification");
 
         // Add the User/Password proxy authentication
         NTCredentials ntCreds = new NTCredentials(proxyUsername, proxyPassword, "", "");
@@ -358,8 +362,11 @@ class SendBuildAction {
                 "multipart/form-data",
                 new BasicNameValuePair("boundary", "\"jenkinsautouploadboundary\""))
         );
-        if (sourceMapPath != null)
+        if (sourceMapPath != null) {
+            this.logger.println("Mapping file path is: " + sourceMapPath);
             AddContentToEntity(entity_builder, sourceMapPath, "sourcemap", ContentType.DEFAULT_TEXT);
+        }
+        this.logger.println("Build file path is: " + buildPath);
 
         if (isBuildStoredInArtifactFolder) {
             // if the build is in the permanent artifact directory we can upload it directly
@@ -370,8 +377,10 @@ class SendBuildAction {
             return client.execute(requestUploadbuild);
         }
 
+
         AddContentToEntity(entity_builder, buildPath, "file", ContentType.DEFAULT_BINARY);
         requestUploadbuild.setEntity(entity_builder.build());
+        this.logger.println("Start uploading build to the endpoint: " + this.uploadUrl);
         // Add the api access key of the customer and tell to Upload API that the request comes from jenkins
         return client.execute(requestUploadbuild);
     }
