@@ -1,6 +1,14 @@
 CHANGELOG
 =========
 
+version 2.0.0
+-------------
+* New: The jenkins plugin can now update a generated source map file with obfuscated apk
+
+version 1.4.0
+-------------
+* Change: The proxy password is now stored as a secret
+
 version 1.3.0
 -------------
 * New: The jenkins plugin is now DSL compatible

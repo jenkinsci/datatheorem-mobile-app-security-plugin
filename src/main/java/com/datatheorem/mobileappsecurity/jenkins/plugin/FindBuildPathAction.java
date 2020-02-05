@@ -1,22 +1,15 @@
 package com.datatheorem.mobileappsecurity.jenkins.plugin;
 
+import com.datatheorem.mobileappsecurity.jenkins.plugin.utils.ListFiles;
 import groovy.lang.Tuple2;
 import hudson.FilePath;
-import hudson.Util;
 import hudson.model.Run;
-import hudson.remoting.VirtualChannel;
-import jenkins.MasterToSlaveFileCallable;
-import org.apache.tools.ant.types.FileSet;
 
 import java.io.*;
 import java.nio.file.FileSystems;
-import java.nio.file.Path;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 
 /**
@@ -42,6 +35,7 @@ class FindBuildPathAction {
         this.runner = runner;
         this.logger = logger;
     }
+
 
     private boolean isSimilarToBuildName(String fileName) {
         /*
@@ -82,24 +76,4 @@ class FindBuildPathAction {
         return null;
     }
 
-    private static final class ListFiles extends MasterToSlaveFileCallable<Map<String, String>> {
-        /*
-         * Jenkins core way to get the relative path of all files from workspace directory
-         * of either jenkins local server or external secondary agent
-         */
-
-        @Override
-        public Map<String, String> invoke(File basedir, VirtualChannel channel) {
-            Map<String, String> r = new HashMap<>();
-
-            FileSet fileSet = Util.createFileSet(basedir, "", "");
-            fileSet.setCaseSensitive(true);
-
-            for (String f : fileSet.getDirectoryScanner().getIncludedFiles()) {
-                f = f.replace(File.separatorChar, '/');
-                r.put(f, f);
-            }
-            return r;
-        }
-    }
 }

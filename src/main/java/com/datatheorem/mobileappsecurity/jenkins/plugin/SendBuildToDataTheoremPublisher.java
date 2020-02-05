@@ -32,6 +32,7 @@ import java.io.Serializable;
 
 public class SendBuildToDataTheoremPublisher extends Publisher implements SimpleBuildStep, Serializable {
     private  String buildToUpload;
+    private  String mappingFileToUpload;
     private final boolean dontUpload;
     private final String proxyHostname;
     private final int proxyPort;
@@ -43,6 +44,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
     @DataBoundConstructor
     public SendBuildToDataTheoremPublisher(
             String buildToUpload,
+            String mappingFileToUpload,
             boolean dontUpload,
             String proxyHostname,
             int proxyPort,
@@ -54,6 +56,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         * Bind the parameter value of the job configuration page
         */
         this.buildToUpload = buildToUpload;
+        this.mappingFileToUpload = mappingFileToUpload;
         this.dontUpload = dontUpload;
         this.proxyHostname = proxyHostname;
         this.proxyPort = proxyPort;
@@ -107,66 +110,84 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
 
         SendBuildAction sendBuild;
         listener.getLogger().println("Data Theorem upload build plugin starting...");
+
         Result result = run.getResult();
-        if (result != null && result.isWorseOrEqualTo(Result.FAILURE)) {
-            listener.getLogger().println("Skipping upload because the build step failed");
-            return;
-        } else if (result != null && result.isWorseOrEqualTo(Result.UNSTABLE)) {
-            listener.getLogger().println("Skipping upload because the build is unstable");
+        if (result != null && result.isWorseOrEqualTo(Result.UNSTABLE)) {
+            listener.getLogger().println(
+                    "Skipping Data Theorem CI/CD because the previous step result is: " + Result.UNSTABLE.toString()
+            );
+            run.setResult(result);
             return;
         }
 
         listener.getLogger().println("Uploading the build to Data Theorem : " + this.buildToUpload);
-
         // First find the path to the build to upload
         FindBuildPathAction buildToSend = new FindBuildPathAction(this.buildToUpload, workspace, run, listener.getLogger());
         Tuple2<String, Boolean> findPathResult = buildToSend.perform();
-        if (findPathResult != null) {
-            String buildPath = findPathResult.getFirst();
-            Boolean isBuildStoredInArtifactFolder = findPathResult.getSecond();
-
-            listener.getLogger().println("Found the build at path: " + buildPath);
-
-            // If the user only wants to check if the path was correct we don't call the Upload API
-            if (dontUpload) {
-                listener.getLogger().println("Skipping upload... \"Don't Upload\" option enabled");
-            } else {
-                // Then upload the build to DT
-                if (proxyHostname == null || proxyHostname.isEmpty()) {
-                    listener.getLogger().println("No proxy configuration");
-
-                    sendBuild = new SendBuildAction(
-                            getSecretKey(run, listener),
-                            listener.getLogger(),
-                            workspace
-                    );
-                }
-                else {
-                    listener.getLogger().println("Proxy Configuration is : " + proxyHostname + ":" + proxyPort);
-
-                    sendBuild = new SendBuildAction(
-                            getSecretKey(run, listener),
-                            listener.getLogger(),
-                            workspace,
-                            proxyHostname,
-                            proxyPort,
-                            proxyUsername,
-                            proxyPassword.getPlainText(),
-                            proxyUnsecuredConnection
-                    );
-                }
-
-                SendBuildMessage sendBuildResult = sendBuild.perform(buildPath, isBuildStoredInArtifactFolder);
-                if (!sendBuildResult.message.equals("")) {
-                    listener.getLogger().println(sendBuildResult.message);
-                }
-                if (!sendBuildResult.success) {
-                    run.setResult(Result.UNSTABLE);
-                }
-            }
-        } else {
+        if (findPathResult == null) {
             listener.getLogger().println("Unable to find any build with name : " + this.buildToUpload);
             run.setResult(Result.UNSTABLE);
+            return;
+        }
+
+        // Check if the build is in artifact folder or the workspace
+        String buildPath = findPathResult.getFirst();
+        Boolean isBuildStoredInArtifactFolder = findPathResult.getSecond();
+
+        String findSourceMapResult = null;
+        if (!(mappingFileToUpload == null || mappingFileToUpload.isEmpty())){
+            FindSourceMapPathAction findSourceMapPathAction = new FindSourceMapPathAction(this.mappingFileToUpload, workspace, listener.getLogger());
+             findSourceMapResult = findSourceMapPathAction.perform();
+            if (findSourceMapResult == null) {
+                listener.getLogger().println("Unable to find any mapping file with name : " + this.mappingFileToUpload);
+                run.setResult(Result.UNSTABLE);
+                return;
+            }
+            listener.getLogger().println("Found the mapping file at path: " + findSourceMapResult);
+        }
+
+        // If the user only wants to check if the path was correct we don't call the Upload API
+        if (dontUpload) {
+            listener.getLogger().println("Skipping upload... \"Don't Upload\" option enabled");
+            run.setResult(Result.SUCCESS);
+            return;
+        }
+
+        // Then upload the build to DT
+        if (proxyHostname == null || proxyHostname.isEmpty()) {
+            listener.getLogger().println("No proxy configuration");
+
+            sendBuild = new SendBuildAction(
+                    getSecretKey(run, listener),
+                    listener.getLogger(),
+                    workspace
+            );
+        }
+        else {
+            listener.getLogger().println("Proxy Configuration is : " + proxyHostname + ":" + proxyPort);
+
+            sendBuild = new SendBuildAction(
+                    getSecretKey(run, listener),
+                    listener.getLogger(),
+                    workspace,
+                    proxyHostname,
+                    proxyPort,
+                    proxyUsername,
+                    proxyPassword.getPlainText(),
+                    proxyUnsecuredConnection
+            );
+        }
+        SendBuildMessage sendBuildResult = sendBuild.perform(
+                buildPath,
+                findSourceMapResult,
+                isBuildStoredInArtifactFolder
+        );
+        if (!sendBuildResult.message.isEmpty()) {
+            listener.getLogger().println(sendBuildResult.message);
+        }
+        if (!sendBuildResult.success) {
+            run.setResult(Result.UNSTABLE);
+            return;
         }
        run.setResult(Result.SUCCESS);
     }
@@ -185,6 +206,12 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
 
         // Required to get the last value when we update a job config
         return buildToUpload;
+    }
+
+    public String getmappingFileToUpload() {
+
+        // Required to get the last value when we update a job config
+        return mappingFileToUpload;
     }
 
     public boolean isDontUpload() {
@@ -223,12 +250,12 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         return proxyUnsecuredConnection;
     }
 
-
     @Extension
     // Define the symbols needed to call the jenkins plugin in a DSL pipeline
     @Symbol({
             "sendBuildToDataTheorem",
             "buildToUpload",
+            "mappingFileToUpload",
             "dontUpload",
             "proxyHostname",
             "proxyPort",
@@ -251,7 +278,21 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             if (value.length() < 5)
                 return FormValidation.error("The build name is too short");
             return FormValidation.ok();
+        }
 
+        public FormValidation doCheckmappingFileToUpload(
+                @QueryParameter(value = "mappingFileToUpload") String sourceMapName,
+                @QueryParameter(value = "buildToUpload") String buildName
+                )
+        {
+            if (sourceMapName.isEmpty())
+                return FormValidation.ok();
+            if (!sourceMapName.toLowerCase().endsWith(".txt"))
+                return FormValidation.warning("mapping file should ends with .txt");
+            if (!buildName.toLowerCase().endsWith(".apk"))
+                return FormValidation.warning("mapping file should only be uploaded with an apk file");
+
+            return FormValidation.ok();
         }
 
         @Override
