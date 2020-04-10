@@ -26,7 +26,7 @@
         </license>
     </licenses>
 
-    <url>https://wiki.jenkins.io/display/JENKINS/Data+Theorem+Mobile+App+Security+Plugin</url>
+    <url>https://github.com/jenkinsci/datatheorem-mobile-app-security-plugin/blob/master/guide.md</url>
 
     <developers>
         <developer>
