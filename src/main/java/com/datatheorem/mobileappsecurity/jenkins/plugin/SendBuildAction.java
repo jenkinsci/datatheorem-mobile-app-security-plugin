@@ -120,7 +120,12 @@ class SendBuildAction {
         this.proxyUnsecureConnection = proxyUnsecureConnection;
     }
 
-    public SendBuildMessage perform(String buildPath, String sourceMapPath, Boolean isBuildStoredInArtifactFolder) {
+    public SendBuildMessage perform(
+            String buildPath,
+            String sourceMapPath,
+            Boolean isBuildStoredInArtifactFolder,
+            int retryNumber
+    ) {
         /*
          * Perform the SendBuildAction : send the build to Data Theorem Upload API
          * @param :
@@ -130,12 +135,23 @@ class SendBuildAction {
          */
 
         SendBuildMessage uploadInitMessage = uploadInit();
+
+        // If upload init failed then retry
+        if (!uploadInitMessage.success && retryNumber < 2) {
+            return this.perform(buildPath, sourceMapPath, isBuildStoredInArtifactFolder, retryNumber + 1);
+        }
         // If we successfully get an upload link : Send the build at the upload url
         if (uploadInitMessage.success && !uploadInitMessage.message.equals("")) {
-            return uploadBuild(buildPath, sourceMapPath, isBuildStoredInArtifactFolder);
-        } else {
-            return uploadInitMessage;
+            SendBuildMessage uploadBuildMessage = uploadBuild(buildPath, sourceMapPath, isBuildStoredInArtifactFolder);
+
+            if (uploadBuildMessage.success) return uploadBuildMessage;
+
+            if (retryNumber < 2) {
+                return this.perform(buildPath, sourceMapPath, isBuildStoredInArtifactFolder, retryNumber + 1);
+            }
+            return uploadBuildMessage;
         }
+        return uploadInitMessage;
     }
 
     SendBuildMessage uploadInit() {
@@ -270,7 +286,8 @@ class SendBuildAction {
         clientBuilder.setDefaultCredentialsProvider(credsProvider);
         clientBuilder.setProxyAuthenticationStrategy(new ProxyAuthenticationStrategy());
 
-        return clientBuilder.build();
+        // build the client without automatic retry mechanism
+        return clientBuilder.disableAutomaticRetries().build();
 
     }
 
@@ -353,6 +370,7 @@ class SendBuildAction {
         // Create an http client to make the post request to upload_init endpoint
 
         HttpClient client = createAuthenticatedHttpClient();
+
         HttpPost requestUploadbuild = new HttpPost(this.uploadUrl);
         requestUploadbuild.addHeader("User-Agent", "Jenkins Upload API Plugin " + version);
 
