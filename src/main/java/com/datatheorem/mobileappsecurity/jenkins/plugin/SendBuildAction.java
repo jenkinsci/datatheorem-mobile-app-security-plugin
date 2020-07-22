@@ -123,8 +123,31 @@ class SendBuildAction {
     public SendBuildMessage perform(
             String buildPath,
             String sourceMapPath,
-            Boolean isBuildStoredInArtifactFolder,
-            int retryNumber
+            Boolean isBuildStoredInArtifactFolder
+    ) {
+        /*
+         * Perform the SendBuildAction : send the build to Data Theorem Upload API
+         * @param :
+         *    buildPath : Path of the build we want to send to Data Theorem
+         * @return :
+         *    SendBuildMessage containing the success or the failure information about the SendBuild process
+         */
+        SendBuildMessage uploadMessage = new SendBuildMessage(false, "");
+        for(int retry=0; retry<3; retry++){
+             uploadMessage = full_upload(
+                    buildPath,
+                    sourceMapPath,
+                    isBuildStoredInArtifactFolder
+            );
+            if (uploadMessage.success) return uploadMessage;
+        }
+        return uploadMessage;
+    }
+
+    SendBuildMessage full_upload(
+            String buildPath,
+            String sourceMapPath,
+            Boolean isBuildStoredInArtifactFolder
     ) {
         /*
          * Perform the SendBuildAction : send the build to Data Theorem Upload API
@@ -135,24 +158,14 @@ class SendBuildAction {
          */
 
         SendBuildMessage uploadInitMessage = uploadInit();
-
-        // If upload init failed then retry
-        if (!uploadInitMessage.success && retryNumber < 2) {
-            return this.perform(buildPath, sourceMapPath, isBuildStoredInArtifactFolder, retryNumber + 1);
-        }
         // If we successfully get an upload link : Send the build at the upload url
         if (uploadInitMessage.success && !uploadInitMessage.message.equals("")) {
-            SendBuildMessage uploadBuildMessage = uploadBuild(buildPath, sourceMapPath, isBuildStoredInArtifactFolder);
-
-            if (uploadBuildMessage.success) return uploadBuildMessage;
-
-            if (retryNumber < 2) {
-                return this.perform(buildPath, sourceMapPath, isBuildStoredInArtifactFolder, retryNumber + 1);
-            }
-            return uploadBuildMessage;
+            return uploadBuild(buildPath, sourceMapPath, isBuildStoredInArtifactFolder);
+        } else {
+            return uploadInitMessage;
         }
-        return uploadInitMessage;
     }
+
 
     SendBuildMessage uploadInit() {
         /*

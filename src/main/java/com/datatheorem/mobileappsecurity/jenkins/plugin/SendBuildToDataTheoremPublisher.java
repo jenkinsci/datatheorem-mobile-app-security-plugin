@@ -180,8 +180,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         SendBuildMessage sendBuildResult = sendBuild.perform(
                 buildPath,
                 findSourceMapResult,
-                isBuildStoredInArtifactFolder,
-                0
+                isBuildStoredInArtifactFolder
         );
         if (!sendBuildResult.message.isEmpty()) {
             listener.getLogger().println(sendBuildResult.message);
