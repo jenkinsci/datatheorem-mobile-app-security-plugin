@@ -1,5 +1,6 @@
-package com.datatheorem.mobileappsecurity.jenkins.plugin;
+package com.datatheorem.mobileappsecurity.jenkins.plugin.sendbuild;
 
+import com.datatheorem.mobileappsecurity.jenkins.plugin.SendBuildAction;
 import hudson.FilePath;
 import org.apache.http.*;
 import org.apache.http.entity.BasicHttpEntity;

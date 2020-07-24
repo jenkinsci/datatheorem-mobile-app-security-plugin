@@ -1,5 +1,7 @@
 package com.datatheorem.mobileappsecurity.jenkins.plugin;
 
+import com.datatheorem.mobileappsecurity.jenkins.plugin.sendbuild.SendBuildAction;
+import com.datatheorem.mobileappsecurity.jenkins.plugin.sendbuild.SendBuildMessage;
 import groovy.lang.Tuple2;
 import hudson.Extension;
 import hudson.FilePath;
@@ -40,6 +42,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
     private Secret proxyPassword = null;
     private final boolean proxyUnsecuredConnection;
     private String dataTheoremUploadApiKey = null;
+    private final boolean sendBuildDirectlyFromRemote;
 
     @DataBoundConstructor
     public SendBuildToDataTheoremPublisher(
@@ -50,7 +53,8 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             int proxyPort,
             String proxyUsername,
             String proxyPassword,
-            boolean proxyUnsecuredConnection
+            boolean proxyUnsecuredConnection,
+            boolean sendBuildDirectlyFromRemote
         ) {
         /*
         * Bind the parameter value of the job configuration page
@@ -63,6 +67,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         this.proxyUsername = proxyUsername;
         this.proxyPassword = Secret.fromString(proxyPassword);
         this.proxyUnsecuredConnection = proxyUnsecuredConnection;
+        this.sendBuildDirectlyFromRemote = sendBuildDirectlyFromRemote;
     }
 
     public String getDataTheoremUploadApiKey() {
@@ -177,11 +182,22 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
                     proxyUnsecuredConnection
             );
         }
-        SendBuildMessage sendBuildResult = sendBuild.perform(
-                buildPath,
-                findSourceMapResult,
-                isBuildStoredInArtifactFolder
-        );
+        SendBuildMessage sendBuildResult;
+        if (sendBuildDirectlyFromRemote){
+             sendBuildResult = sendBuild.perform_remotely(
+                    buildPath,
+                    findSourceMapResult,
+                    isBuildStoredInArtifactFolder
+            );
+        }
+        else{
+                 sendBuildResult = sendBuild.perform(
+                        buildPath,
+                        findSourceMapResult,
+                        isBuildStoredInArtifactFolder
+                );
+        }
+
         if (!sendBuildResult.message.isEmpty()) {
             listener.getLogger().println(sendBuildResult.message);
         }
@@ -232,6 +248,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         return proxyPort;
     }
 
+
     public String getProxyUsername() {
         // Required to get the last value when we update a job config
 
@@ -250,6 +267,12 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         return proxyUnsecuredConnection;
     }
 
+    public boolean getSendBuildDirectlyFromRemote() {
+        // Required to get the last value when we update a job config
+
+        return sendBuildDirectlyFromRemote;
+    }
+
     @Extension
     // Define the symbols needed to call the jenkins plugin in a DSL pipeline
     @Symbol({
@@ -262,7 +285,9 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             "proxyUsername",
             "proxyPassword",
             "proxyUnsecuredConnection",
-            "dataTheoremUploadApiKey"
+            "dataTheoremUploadApiKey",
+            "sendBuildDirectlyFromRemote"
+
     })
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 
