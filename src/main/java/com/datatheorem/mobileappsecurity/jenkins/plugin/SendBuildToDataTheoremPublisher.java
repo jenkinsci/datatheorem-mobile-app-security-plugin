@@ -190,12 +190,10 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         }
         SendBuildMessage sendBuildResult;
         if (sendBuildDirectlyFromRemote){
-            sendBuildResult =             workspace.act(sendBuild);
-
+            sendBuildResult = workspace.act(sendBuild);
         }
         else{
-            sendBuildResult = sendBuild.perform(
-                );
+            sendBuildResult = sendBuild.perform();
         }
 
         if (!sendBuildResult.message.isEmpty()) {
