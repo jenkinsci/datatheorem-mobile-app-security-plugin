@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+version 2.0.1
+-------------
+* New: Add a new retry mechanism to the jenkins plugin
+
 version 2.0.0
 -------------
 * New: The jenkins plugin can now update a generated source map file with obfuscated apk

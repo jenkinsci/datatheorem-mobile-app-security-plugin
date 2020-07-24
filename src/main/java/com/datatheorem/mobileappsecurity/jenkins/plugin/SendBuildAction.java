@@ -120,7 +120,37 @@ class SendBuildAction {
         this.proxyUnsecureConnection = proxyUnsecureConnection;
     }
 
-    public SendBuildMessage perform(String buildPath, String sourceMapPath, Boolean isBuildStoredInArtifactFolder) {
+    public SendBuildMessage perform(
+            String buildPath,
+            String sourceMapPath,
+            Boolean isBuildStoredInArtifactFolder
+    ) {
+        /*
+         * Perform the SendBuildAction : send the build to Data Theorem Upload API
+         * @param :
+         *    buildPath : Path of the build we want to send to Data Theorem
+         * @return :
+         *    SendBuildMessage containing the success or the failure information about the SendBuild process
+         */
+        SendBuildMessage uploadMessage = new SendBuildMessage(false, "");
+        for (int retry = 0; retry < 3; retry++) {
+             uploadMessage = full_upload(
+                    buildPath,
+                    sourceMapPath,
+                    isBuildStoredInArtifactFolder
+            );
+            if (uploadMessage.success) {
+                return uploadMessage;
+            }
+        }
+        return uploadMessage;
+    }
+
+    SendBuildMessage full_upload(
+            String buildPath,
+            String sourceMapPath,
+            Boolean isBuildStoredInArtifactFolder
+    ) {
         /*
          * Perform the SendBuildAction : send the build to Data Theorem Upload API
          * @param :
@@ -137,6 +167,7 @@ class SendBuildAction {
             return uploadInitMessage;
         }
     }
+
 
     SendBuildMessage uploadInit() {
         /*
@@ -252,13 +283,13 @@ class SendBuildAction {
             }
 
         if (proxyHostname == null || proxyHostname.isEmpty())
-            return clientBuilder.build();
+            return clientBuilder.disableAutomaticRetries().build();
 
         clientBuilder.setProxy(new HttpHost(proxyHostname, proxyPort));
 
         if (proxyUsername == null || proxyUsername.isEmpty()) {
             this.logger.println("Proxy has no username/password authentification");
-            return clientBuilder.build();
+            return clientBuilder.disableAutomaticRetries().build();
         }
 
         this.logger.println("Proxy is set using username/password authentification");
@@ -270,7 +301,8 @@ class SendBuildAction {
         clientBuilder.setDefaultCredentialsProvider(credsProvider);
         clientBuilder.setProxyAuthenticationStrategy(new ProxyAuthenticationStrategy());
 
-        return clientBuilder.build();
+        // build the client without automatic retry mechanism
+        return clientBuilder.disableAutomaticRetries().build();
 
     }
 
@@ -353,6 +385,7 @@ class SendBuildAction {
         // Create an http client to make the post request to upload_init endpoint
 
         HttpClient client = createAuthenticatedHttpClient();
+
         HttpPost requestUploadbuild = new HttpPost(this.uploadUrl);
         requestUploadbuild.addHeader("User-Agent", "Jenkins Upload API Plugin " + version);
 
