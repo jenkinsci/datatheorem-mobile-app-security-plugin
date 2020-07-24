@@ -164,8 +164,11 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
 
             sendBuild = new SendBuildAction(
                     getSecretKey(run, listener),
-                    listener.getLogger(),
-                    workspace
+                    listener,
+                    workspace,
+                    buildPath,
+                    findSourceMapResult,
+                    isBuildStoredInArtifactFolder
             );
         }
         else {
@@ -173,8 +176,11 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
 
             sendBuild = new SendBuildAction(
                     getSecretKey(run, listener),
-                    listener.getLogger(),
+                    listener,
                     workspace,
+                    buildPath,
+                    findSourceMapResult,
+                    isBuildStoredInArtifactFolder,
                     proxyHostname,
                     proxyPort,
                     proxyUsername,
@@ -184,17 +190,11 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         }
         SendBuildMessage sendBuildResult;
         if (sendBuildDirectlyFromRemote){
-             sendBuildResult = sendBuild.perform_remotely(
-                    buildPath,
-                    findSourceMapResult,
-                    isBuildStoredInArtifactFolder
-            );
+            sendBuildResult =             workspace.act(sendBuild);
+
         }
         else{
-                 sendBuildResult = sendBuild.perform(
-                        buildPath,
-                        findSourceMapResult,
-                        isBuildStoredInArtifactFolder
+            sendBuildResult = sendBuild.perform(
                 );
         }
 

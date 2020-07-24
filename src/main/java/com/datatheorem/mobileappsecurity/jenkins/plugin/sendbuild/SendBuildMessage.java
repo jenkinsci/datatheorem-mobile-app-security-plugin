@@ -3,7 +3,7 @@ package com.datatheorem.mobileappsecurity.jenkins.plugin.sendbuild;
 /**
  * Response message of SendBuildAction
  */
-public class SendBuildMessage {
+public class SendBuildMessage implements java.io.Serializable{
     /*
       Response message of SendBuildAction
       @attr:
@@ -14,7 +14,7 @@ public class SendBuildMessage {
     public final boolean success;
     public final String message;
 
-    SendBuildMessage(boolean success, String message) {
+    public SendBuildMessage(boolean success, String message) {
         this.success = success;
         this.message = message;
 

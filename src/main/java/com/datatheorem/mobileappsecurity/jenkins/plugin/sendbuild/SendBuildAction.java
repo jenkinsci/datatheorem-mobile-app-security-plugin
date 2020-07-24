@@ -3,6 +3,7 @@ package com.datatheorem.mobileappsecurity.jenkins.plugin.sendbuild;
 
 import com.datatheorem.mobileappsecurity.jenkins.plugin.utils.RemoteAgentStreamBody;
 import hudson.FilePath;
+import hudson.model.TaskListener;
 import hudson.remoting.VirtualChannel;
 import jenkins.MasterToSlaveFileCallable;
 import org.apache.http.HttpEntity;
@@ -46,10 +47,10 @@ import java.util.Map;
  * </p>
  */
 
-public class SendBuildAction {
+public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage> {
 
     private final String apiKey;
-    private final PrintStream logger; // Jenkins logger
+    private final TaskListener listener; // Jenkins logger
     private final FilePath workspace;
     private String uploadUrl;
     private String version = "2.0.0";
@@ -58,47 +59,45 @@ public class SendBuildAction {
     private final String proxyUsername;
     private final String proxyPassword;
     private final boolean proxyUnsecureConnection;
+    String buildPath;
+    String sourceMapPath;
+    Boolean isBuildStoredInArtifactFolder;
 
-
-    public SendBuildAction(String apiKey, PrintStream logger, FilePath workspace) {
-        /*
-         * Constructor of the SendBuildAction
-         * @param :
-         *   apiKey : Secret Upload API Key to access Data Theorem Upload API
-         *   logger : Jenkins Logger to show uploading steps on the console output
-         */
-
-        this.apiKey = apiKey;
-        this.logger = logger;
-        this.workspace = workspace;
-        this.proxyHostname = null;
-        this.proxyPort = 0;
-        this.proxyUsername = null;
-        this.proxyPassword = null;
-        this.proxyUnsecureConnection = false;
-    }
-
-    public SendBuildAction(String apiKey, FilePath workspace) {
-        /*
-         * Constructor of the SendBuildAction
-         * @param :
-         *   apiKey : Secret Upload API Key to access Data Theorem Upload API
-         *   logger : Jenkins Logger to show uploading steps on the console output
-         */
-
-        this.apiKey = apiKey;
-        this.logger = null;
-        this.workspace = workspace;
-        this.proxyHostname = null;
-        this.proxyPort = 0;
-        this.proxyUsername = null;
-        this.proxyPassword = null;
-        this.proxyUnsecureConnection = false;
-    }
 
     public SendBuildAction(String apiKey,
-                           PrintStream logger,
+                           TaskListener listener,
                            FilePath workspace,
+                           String buildPath,
+                           String sourceMapPath,
+                           Boolean isBuildStoredInArtifactFolder
+    ) {
+        /*
+         * Constructor of the SendBuildAction
+         * @param :
+         *   apiKey : Secret Upload API Key to access Data Theorem Upload API
+         *   logger : Jenkins Logger to show uploading steps on the console output
+         */
+
+        this.apiKey = apiKey;
+        this.listener = listener;
+        this.workspace = workspace;
+        this.buildPath = buildPath;
+        this.sourceMapPath = sourceMapPath;
+        this.isBuildStoredInArtifactFolder = isBuildStoredInArtifactFolder;
+        this.proxyHostname = null;
+        this.proxyPort = 0;
+        this.proxyUsername = null;
+        this.proxyPassword = null;
+        this.proxyUnsecureConnection = false;
+    }
+
+
+    public SendBuildAction(String apiKey,
+                           TaskListener listener,
+                           FilePath workspace,
+                           String buildPath,
+                           String sourceMapPath,
+                           Boolean isBuildStoredInArtifactFolder,
                            String proxyHostname,
                            int proxyPort,
                            String proxyUsername,
@@ -112,8 +111,12 @@ public class SendBuildAction {
          */
 
         this.apiKey = apiKey;
-        this.logger = logger;
+        this.listener = listener;
         this.workspace = workspace;
+        this.buildPath = buildPath;
+        this.sourceMapPath = sourceMapPath;
+        this.isBuildStoredInArtifactFolder = isBuildStoredInArtifactFolder;
+
         this.proxyHostname = proxyHostname;
         this.proxyPort = proxyPort;
         this.proxyUsername = proxyUsername;
@@ -121,24 +124,13 @@ public class SendBuildAction {
         this.proxyUnsecureConnection = proxyUnsecureConnection;
     }
 
-    public SendBuildMessage perform_remotely(
-            String buildPath,
-            String sourceMapPath,
-            Boolean isBuildStoredInArtifactFolder
-    ) throws IOException, InterruptedException {
-        logger.println("Remote machine is uploading the build...");
-        return perform(buildPath,sourceMapPath,isBuildStoredInArtifactFolder);
-//        workspace.act(new SendFromRemote(buildPath,
-//                sourceMapPath,
-//                isBuildStoredInArtifactFolder,  workspace
-//                ));
+    public SendBuildMessage invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
+        SendBuildMessage message = perform();
+        return message;
     }
 
 
     public SendBuildMessage perform(
-            String buildPath,
-            String sourceMapPath,
-            Boolean isBuildStoredInArtifactFolder
     ) {
         /*
          * Perform the SendBuildAction : send the build to Data Theorem Upload API
@@ -148,24 +140,17 @@ public class SendBuildAction {
          *    SendBuildMessage containing the success or the failure information about the sendbuild process
          */
 
-        logger.println("Local machine is uploading the build...");
+        listener.getLogger().println("Local machine is uploading the build...");
 
         SendBuildMessage uploadMessage = new SendBuildMessage(false, "");
-        for (int retry = 0; retry < 3; retry++) {
-            uploadMessage = full_upload(
-                    buildPath,
-                    sourceMapPath,
-                    isBuildStoredInArtifactFolder
-            );
+        for (int retry = 0; retry < 1; retry++) {
+            uploadMessage = full_upload();
             if (uploadMessage.success) return uploadMessage;
         }
         return uploadMessage;
     }
 
     SendBuildMessage full_upload(
-            String buildPath,
-            String sourceMapPath,
-            Boolean isBuildStoredInArtifactFolder
     ) {
         /*
          * Perform the SendBuildAction : send the build to Data Theorem Upload API
@@ -178,7 +163,7 @@ public class SendBuildAction {
         SendBuildMessage uploadInitMessage = uploadInit();
         // If we successfully get an upload link : Send the build at the upload url
         if (uploadInitMessage.success && !uploadInitMessage.message.equals("")) {
-            return uploadBuild(buildPath, sourceMapPath, isBuildStoredInArtifactFolder);
+            return uploadBuild();
         } else {
             return uploadInitMessage;
         }
@@ -213,7 +198,7 @@ public class SendBuildAction {
             );
         }
 
-        //logger.println("Retrieving the upload URL from Data Theorem ...");
+        listener.getLogger().println("Retrieving the upload URL from Data Theorem ...");
         try {
 
             HttpResponse response = uploadInitRequest();
@@ -276,7 +261,7 @@ public class SendBuildAction {
         }
     }
 
-    private static  HttpClient createAuthenticatedHttpClient() {
+    private HttpClient createAuthenticatedHttpClient() {
         /*
          * Create an http client to perform post request with or without a proxy
          * @return:
@@ -285,31 +270,30 @@ public class SendBuildAction {
 
         HttpClientBuilder clientBuilder = HttpClientBuilder.create();
         clientBuilder.useSystemProperties();
-        return clientBuilder.disableAutomaticRetries().build();
 
         if (proxyUnsecureConnection)
             try {
-                this.logger.println("Insecure connection option is check: bypassing SSL Validation");
+                listener.getLogger().println("Insecure connection option is check: bypassing SSL Validation");
                 SSLConnectionSocketFactory acceptAllCertificate = new SSLConnectionSocketFactory(
                         SSLContexts.custom().loadTrustMaterial(null, new TrustSelfSignedStrategy()).build(),
                         NoopHostnameVerifier.INSTANCE);
 
                 clientBuilder.setSSLSocketFactory(acceptAllCertificate);
             } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
-                logger.println(e.getMessage());
+               listener.getLogger().println(e.getMessage());
             }
 
         if (proxyHostname == null || proxyHostname.isEmpty())
-            return clientBuilder.build();
+            return clientBuilder.disableAutomaticRetries().build();
 
         clientBuilder.setProxy(new HttpHost(proxyHostname, proxyPort));
 
         if (proxyUsername == null || proxyUsername.isEmpty()) {
-            this.logger.println("Proxy has no username/password authentification");
-            return clientBuilder.build();
+            listener.getLogger().println("Proxy has no username/password authentification");
+            return clientBuilder.disableAutomaticRetries().build();
         }
 
-        //this.logger.println("Proxy is set using username/password authentification");
+        listener.getLogger().println("Proxy is set using username/password authentification");
 
         // Add the User/Password proxy authentication
         NTCredentials ntCreds = new NTCredentials(proxyUsername, proxyPassword, "", "");
@@ -340,11 +324,11 @@ public class SendBuildAction {
         requestUploadInit.addHeader("User-Agent", "Jenkins Upload API Plugin " + version);
 
         HttpResponse response = client.execute(requestUploadInit);
-        logger.println(response.getStatusLine().toString());
+        listener.getLogger().println(response.getStatusLine().toString());
         return response;
     }
 
-    SendBuildMessage uploadBuild(String buildPath, String sourceMapPath, Boolean isBuildStoredInArtifactFolder) {
+    SendBuildMessage uploadBuild() {
         /*
          * Send the build to Data Theorem using the current valid upload link
          * @param:
@@ -353,23 +337,11 @@ public class SendBuildAction {
          *   SendBuildMessage containing the success or the failure information of the sendbuild process
          */
 
-        logger.println("Uploading build to Data Theorem...");
+        //logger.println("Uploading build to Data Theorem...");
 
         HttpResponse response;
         try {
-
-            if(1 == 1)
-            {
-                workspace.act(new SendFromRemote(buildPath, sourceMapPath, isBuildStoredInArtifactFolder, workspace, uploadUrl));
-                return new SendBuildMessage(
-                        true,
-                        "Successfully uploaded build to Data Theorem : "
-                );
-            }
-            HttpPost requestUploadbuild = uploadBuildRequest(buildPath, sourceMapPath, isBuildStoredInArtifactFolder, workspace, uploadUrl);
-            HttpClient client = createAuthenticatedHttpClient();
-
-            response = client.execute(requestUploadbuild);
+            response = uploadBuildRequest(workspace);
             HttpEntity entity = response.getEntity();
             if (entity == null) {
                 return new SendBuildMessage(
@@ -401,7 +373,7 @@ public class SendBuildAction {
         }
     }
 
-    static HttpPost  uploadBuildRequest(String buildPath, String sourceMapPath, Boolean isBuildStoredInArtifactFolder,FilePath workspace, String uploadUrl)
+    HttpResponse uploadBuildRequest(FilePath workspace)
             throws IOException, InterruptedException {
         /*
          * Http call of the upload link generated by upload_init
@@ -411,7 +383,7 @@ public class SendBuildAction {
 
 
         // Create an http client to make the post request to upload_init endpoint
-
+        HttpClient client = createAuthenticatedHttpClient();
 
         HttpPost requestUploadbuild = new HttpPost(uploadUrl);
         requestUploadbuild.addHeader("User-Agent", "Jenkins Upload API Plugin " + " TESTING ");
@@ -423,10 +395,10 @@ public class SendBuildAction {
                 new BasicNameValuePair("boundary", "\"jenkinsautouploadboundary\""))
         );
         if (sourceMapPath != null) {
-            //this.logger.println("Mapping file path is: " + sourceMapPath);
-            AddContentToEntity(entity_builder, sourceMapPath, "sourcemap", ContentType.DEFAULT_TEXT, workspace);
+            listener.getLogger().println("Mapping file path is: " + sourceMapPath);
+            AddContentToEntity(entity_builder, sourceMapPath, "sourcemap", ContentType.DEFAULT_TEXT);
         }
-        //this.logger.println("Build file path is: " + buildPath);
+        listener.getLogger().println("Build file path is: " + buildPath);
 
         if (isBuildStoredInArtifactFolder) {
             // if the build is in the permanent artifact directory we can upload it directly
@@ -434,54 +406,30 @@ public class SendBuildAction {
             requestUploadbuild.setEntity(entity_builder.build());
 
             // Add the api access key of the customer and tell to Upload API that the request comes from jenkins
-            return requestUploadbuild;
+            return client.execute(requestUploadbuild);
         }
 
-        AddContentToEntity(entity_builder, buildPath, "file", ContentType.DEFAULT_BINARY, workspace);
+        AddContentToEntity(entity_builder, buildPath, "file", ContentType.DEFAULT_BINARY);
         requestUploadbuild.setEntity(entity_builder.build());
-        //this.logger.println("Start uploading build to the endpoint: " + this.uploadUrl);
+        listener.getLogger().println("Start uploading build to the endpoint: " + this.uploadUrl);
         // Add the api access key of the customer and tell to Upload API that the request comes from jenkins
-        return requestUploadbuild;
+        return client.execute(requestUploadbuild);
     }
 
-    private static  void AddContentToEntity(MultipartEntityBuilder entityBuilder, String binaryPath, String bodyName, ContentType contentType,FilePath workspace)
+    private void AddContentToEntity(MultipartEntityBuilder entityBuilder, String binaryPath, String bodyName, ContentType contentType)
             throws IOException, InterruptedException {
 
         if (!workspace.child(binaryPath).isRemote()) {
-            //  this.logger.println("abc " + this.uploadUrl);
-
             entityBuilder.addBinaryBody(bodyName, new File(workspace.child(binaryPath).toURI()));
         }
-        //this.logger.println("def " + this.uploadUrl);
-
-        entityBuilder.addPart(bodyName, new RemoteAgentStreamBody(
-                workspace.child(binaryPath),
-                contentType,
-                workspace.child(binaryPath).getName()
-        ));
+        else {
+            entityBuilder.addPart(bodyName, new RemoteAgentStreamBody(
+                    workspace.child(binaryPath),
+                    contentType,
+                    workspace.child(binaryPath).getName()
+            ));
+        }
     }
 
-    private static class SendFromRemote extends MasterToSlaveFileCallable<Map<String, String>> {
-        private final String buildPath;
-        private final String sourceMapPath;
-        private final Boolean isBuildStoredInArtifactFolder;
-        private final FilePath workspace;
-        private String upload_url;
 
-        public SendFromRemote(String buildPath, String sourceMapPath, Boolean isBuildStoredInArtifactFolder, FilePath workspace, String upload_url) {
-            this.buildPath = buildPath;
-            this.sourceMapPath = sourceMapPath;
-            this.isBuildStoredInArtifactFolder = isBuildStoredInArtifactFolder;
-            this.workspace = workspace;
-            this.upload_url = upload_url;
-        }
-
-        public Map<String, String> invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
-            HttpClient client = createAuthenticatedHttpClient();
-
-            client.execute(uploadBuildRequest(buildPath, sourceMapPath, isBuildStoredInArtifactFolder, workspace, upload_url));
-            return new HashMap<>();
-        }
-
-    }
 }
