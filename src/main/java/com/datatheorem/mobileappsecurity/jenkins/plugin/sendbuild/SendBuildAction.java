@@ -34,8 +34,6 @@ import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Upload a build to Data Theorem Upload Api.
@@ -53,7 +51,7 @@ public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage>
     private final TaskListener listener; // Jenkins logger
     private final FilePath workspace;
     private String uploadUrl;
-    private String version = "2.0.0";
+    private String version = "2.1.0";
     private final String proxyHostname;
     private final int proxyPort;
     private final String proxyUsername;
@@ -124,7 +122,8 @@ public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage>
         this.proxyUnsecureConnection = proxyUnsecureConnection;
     }
 
-    public SendBuildMessage invoke(File f, VirtualChannel channel) throws IOException, InterruptedException {
+    public SendBuildMessage invoke(File f, VirtualChannel channel) {
+        listener.getLogger().println("Action is running on the remote machine");
         return perform();
     }
 
@@ -138,8 +137,6 @@ public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage>
          * @return :
          *    SendBuildMessage containing the success or the failure information about the sendbuild process
          */
-
-        listener.getLogger().println("Local machine is uploading the build...");
 
         SendBuildMessage uploadMessage = new SendBuildMessage(false, "");
         for (int retry = 0; retry < 1; retry++) {
@@ -387,7 +384,7 @@ public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage>
         HttpClient client = createAuthenticatedHttpClient();
 
         HttpPost requestUploadbuild = new HttpPost(uploadUrl);
-        requestUploadbuild.addHeader("User-Agent", "Jenkins Upload API Plugin " + " TESTING ");
+        requestUploadbuild.addHeader("User-Agent", "Jenkins Upload API Plugin " + version);
 
         MultipartEntityBuilder entity_builder = MultipartEntityBuilder.create();
         entity_builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
@@ -433,6 +430,4 @@ public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage>
             ));
         }
     }
-
-
 }
