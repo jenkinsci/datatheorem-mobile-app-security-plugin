@@ -15,10 +15,12 @@
 	     <f:entry title="${%Dont Upload Build}" field="dontUpload">
             <f:checkbox field="dontUpload"/>
 	     </f:entry>
+	     <f:entry title="${%Use the remote machine to send the build}" field="sendBuildDirectlyFromRemote">
+             <f:checkbox field="sendBuildDirectlyFromRemote"/>
+         </f:entry>
 	</f:advanced>
 	<f:advanced title="Proxy Configuration">
-	   <f:entry title="${%Use the remote machine to send the build}" field="sendBuildDirectlyFromRemote">
-            <f:checkbox field="sendBuildDirectlyFromRemote"/>
+
 	    <f:entry title="" field="proxyConfig">
 	        <h2> Proxy Configuration </h2>
         </f:entry>
