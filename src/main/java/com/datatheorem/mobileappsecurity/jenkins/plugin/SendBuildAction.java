@@ -139,7 +139,9 @@ class SendBuildAction {
                     sourceMapPath,
                     isBuildStoredInArtifactFolder
             );
-            if (uploadMessage.success) return uploadMessage;
+            if (uploadMessage.success) {
+                return uploadMessage;
+            }
         }
         return uploadMessage;
     }
