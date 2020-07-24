@@ -133,7 +133,7 @@ class SendBuildAction {
          *    SendBuildMessage containing the success or the failure information about the SendBuild process
          */
         SendBuildMessage uploadMessage = new SendBuildMessage(false, "");
-        for(int retry=0; retry<3; retry++){
+        for (int retry = 0; retry < 3; retry++) {
              uploadMessage = full_upload(
                     buildPath,
                     sourceMapPath,
@@ -281,13 +281,13 @@ class SendBuildAction {
             }
 
         if (proxyHostname == null || proxyHostname.isEmpty())
-            return clientBuilder.build();
+            return clientBuilder.disableAutomaticRetries().build();
 
         clientBuilder.setProxy(new HttpHost(proxyHostname, proxyPort));
 
         if (proxyUsername == null || proxyUsername.isEmpty()) {
             this.logger.println("Proxy has no username/password authentification");
-            return clientBuilder.build();
+            return clientBuilder.disableAutomaticRetries().build();
         }
 
         this.logger.println("Proxy is set using username/password authentification");
