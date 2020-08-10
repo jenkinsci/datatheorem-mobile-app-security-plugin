@@ -1,9 +1,21 @@
 CHANGELOG
 =========
 
-version 2.0.1
+version 2.0.3
 -------------
 * New: Add a new retry mechanism to the jenkins plugin
+
+* Change: Upgrade java dependencies:
+    * credentials plugin upgraded to 2.1.19
+    * credential binding plugin upgraded to 1.23
+
+version 2.0.2
+-------------
+* Change: Move documentation to github
+
+version 2.0.1
+-------------
+* Change: Add more debug logs
 
 version 2.0.0
 -------------
