@@ -8,8 +8,9 @@ version 2.0.3
 * Change: Update jenkins minimum version to 2.164.3 (2019-05-09)
 
 * Change: Upgrade java dependencies:
-    * credentials plugin upgraded to 2.1.19
-    * credential binding plugin upgraded to 1.23
+    * credentials lib upgraded to 2.1.19
+    * credential binding library upgraded to 1.23
+    * common-codec library upgraded to 1.13
 
 version 2.0.2
 -------------
