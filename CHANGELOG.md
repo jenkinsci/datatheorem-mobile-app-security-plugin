@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+version 2.1.0
+-------------
+* New: Add a feature to allow the building node to send the build directly to Data Theorem
+
 version 2.0.1
 -------------
 * New: Add a new retry mechanism to the jenkins plugin
