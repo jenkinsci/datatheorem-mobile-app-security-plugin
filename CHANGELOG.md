@@ -5,6 +5,8 @@ version 2.0.3
 -------------
 * New: Add a new retry mechanism to the jenkins plugin
 
+* Change: Update jenkins minimum version to 2.164.3 (2019-05-09)
+
 * Change: Upgrade java dependencies:
     * credentials plugin upgraded to 2.1.19
     * credential binding plugin upgraded to 1.23
