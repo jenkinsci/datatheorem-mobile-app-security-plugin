@@ -1,3 +1,9 @@
+Older versions of this plugin may not be safe to use. Please review the
+following warnings before using an older version:
+
+-   [Credentials stored in plain
+    text](https://jenkins.io/security/advisory/2019-09-25/#SECURITY-1557)
+
 ## Purpose
 
 This plugin allows you to automatically upload mobile applications
@@ -12,7 +18,7 @@ here: <https://www.datatheorem.com/products/app-secure>
 
 ## Requirements
 
-The Jenkins minimal version requirement is 2.121.1.
+The Jenkins minimal version requirement is 2.164.3.
 
 The plugin also requires:
 
