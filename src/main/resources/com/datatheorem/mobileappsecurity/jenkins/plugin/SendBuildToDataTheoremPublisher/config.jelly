@@ -15,7 +15,7 @@
 	     <f:entry title="${%Dont Upload Build}" field="dontUpload">
             <f:checkbox field="dontUpload"/>
 	     </f:entry>
-	     <f:entry title="${%Use the remote machine to send the build}" field="sendBuildDirectlyFromRemote">
+	     <f:entry title="${%Use the building node to send the build}" field="sendBuildDirectlyFromRemote">
              <f:checkbox field="sendBuildDirectlyFromRemote"/>
          </f:entry>
 	</f:advanced>
