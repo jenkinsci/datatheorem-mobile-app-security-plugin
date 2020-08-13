@@ -139,7 +139,7 @@ public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage>
          */
 
         SendBuildMessage uploadMessage = new SendBuildMessage(false, "");
-        for (int retry = 0; retry < 1; retry++) {
+        for (int retry = 0; retry < 3; retry++) {
             uploadMessage = full_upload();
             if (uploadMessage.success) {
                 return uploadMessage;
