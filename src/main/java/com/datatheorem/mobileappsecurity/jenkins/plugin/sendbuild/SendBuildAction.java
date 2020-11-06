@@ -51,7 +51,7 @@ public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage>
     private final TaskListener listener; // Jenkins logger
     private final FilePath workspace;
     private String uploadUrl;
-    private String version = "2.1.0";
+    private String version = "2.2.0";
     private final String proxyHostname;
     private final int proxyPort;
     private final String proxyUsername;
