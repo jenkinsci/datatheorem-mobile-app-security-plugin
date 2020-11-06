@@ -43,6 +43,8 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
     private final boolean proxyUnsecuredConnection;
     private String dataTheoremUploadApiKey = null;
     private final boolean sendBuildDirectlyFromRemote;
+    private final String applicationCredentialUsername;
+    private Secret applicationCredentialPassword;
 
     @DataBoundConstructor
     public SendBuildToDataTheoremPublisher(
@@ -54,8 +56,9 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             String proxyUsername,
             String proxyPassword,
             boolean proxyUnsecuredConnection,
-            boolean sendBuildDirectlyFromRemote
-        ) {
+            boolean sendBuildDirectlyFromRemote,
+            String applicationCredentialUsername,
+            String applicationCredentialPassword) {
         /*
         * Bind the parameter value of the job configuration page
         */
@@ -66,6 +69,8 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         this.proxyPort = proxyPort;
         this.proxyUsername = proxyUsername;
         this.proxyPassword = Secret.fromString(proxyPassword);
+        this.applicationCredentialUsername = applicationCredentialUsername;
+        this.applicationCredentialPassword = Secret.fromString(applicationCredentialPassword);
         this.proxyUnsecuredConnection = proxyUnsecuredConnection;
         this.sendBuildDirectlyFromRemote = sendBuildDirectlyFromRemote;
     }
@@ -188,6 +193,16 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
                     proxyUnsecuredConnection
             );
         }
+
+        // Set credentials
+        if (applicationCredentialUsername != null  && !applicationCredentialUsername.isEmpty()) {
+
+            sendBuild.setApplicationCredentialUsername(applicationCredentialUsername);
+        }
+        if (applicationCredentialPassword != null) {
+            sendBuild.setApplicationCredentialPassword(applicationCredentialPassword.getPlainText());
+        }
+
         SendBuildMessage sendBuildResult;
         if (sendBuildDirectlyFromRemote){
             sendBuildResult = workspace.act(sendBuild);
@@ -271,6 +286,14 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         return sendBuildDirectlyFromRemote;
     }
 
+    public String getApplicationCredentialUsername() {
+        return applicationCredentialUsername;
+    }
+
+    public Secret getApplicationCredentialPassword() {
+        return applicationCredentialPassword;
+    }
+
     @Extension
     // Define the symbols needed to call the jenkins plugin in a DSL pipeline
     @Symbol({
@@ -284,7 +307,9 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             "proxyPassword",
             "proxyUnsecuredConnection",
             "dataTheoremUploadApiKey",
-            "sendBuildDirectlyFromRemote"
+            "sendBuildDirectlyFromRemote",
+            "applicationCredentialUsername",
+            "applicationCredentialPassword"
 
     })
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {

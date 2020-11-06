@@ -60,6 +60,8 @@ public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage>
     String buildPath;
     String sourceMapPath;
     Boolean isBuildStoredInArtifactFolder;
+    private String ApplicationCredentialUsername = null;
+    private String ApplicationCredentialPassword = null;
 
 
     public SendBuildAction(String apiKey,
@@ -398,6 +400,21 @@ public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage>
         }
         listener.getLogger().println("Build file path is: " + buildPath);
 
+        // Add credential username
+        if (getApplicationCredentialUsername() != null && !getApplicationCredentialPassword().isEmpty()){
+            listener.getLogger().println("application username provided");
+
+            entity_builder.addTextBody("username", getApplicationCredentialUsername());
+
+        }
+        // Add credential password
+        if (getApplicationCredentialPassword() != null && !getApplicationCredentialPassword().isEmpty()){
+            listener.getLogger().println("application password provided");
+
+            entity_builder.addTextBody("password", getApplicationCredentialPassword());
+
+        }
+
         if (isBuildStoredInArtifactFolder) {
             // if the build is in the permanent artifact directory we can upload it directly
             entity_builder.addBinaryBody("file", new File(buildPath));
@@ -429,5 +446,24 @@ public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage>
                     workspace.child(binaryPath).getName()
             ));
         }
+    }
+
+    public String getApplicationCredentialPassword() {
+        return ApplicationCredentialPassword;
+    }
+
+    public void setApplicationCredentialPassword(String applicationCredentialPassword) {
+        listener.getLogger().println(applicationCredentialPassword);
+
+        ApplicationCredentialPassword = applicationCredentialPassword;
+    }
+
+    public String getApplicationCredentialUsername() {
+        return ApplicationCredentialUsername;
+    }
+
+    public void setApplicationCredentialUsername(String applicationCredentialUsername) {
+        listener.getLogger().println(applicationCredentialUsername);
+        ApplicationCredentialUsername = applicationCredentialUsername;
     }
 }
