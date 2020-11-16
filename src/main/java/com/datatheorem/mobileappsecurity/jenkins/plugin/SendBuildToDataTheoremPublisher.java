@@ -1,5 +1,7 @@
 package com.datatheorem.mobileappsecurity.jenkins.plugin;
 
+import com.datatheorem.mobileappsecurity.jenkins.plugin.sendbuild.ApplicationCredential;
+import com.datatheorem.mobileappsecurity.jenkins.plugin.sendbuild.Proxy;
 import com.datatheorem.mobileappsecurity.jenkins.plugin.sendbuild.SendBuildAction;
 import com.datatheorem.mobileappsecurity.jenkins.plugin.sendbuild.SendBuildMessage;
 import groovy.lang.Tuple2;
@@ -45,7 +47,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
     private final boolean sendBuildDirectlyFromRemote;
     private final String applicationCredentialUsername;
     private Secret applicationCredentialPassword;
-
+    private final String applicationCredentialComments;
     @DataBoundConstructor
     public SendBuildToDataTheoremPublisher(
             String buildToUpload,
@@ -58,7 +60,9 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             boolean proxyUnsecuredConnection,
             boolean sendBuildDirectlyFromRemote,
             String applicationCredentialUsername,
-            String applicationCredentialPassword) {
+            String applicationCredentialPassword,
+            String applicationCredentialComments
+    ) {
         /*
         * Bind the parameter value of the job configuration page
         */
@@ -71,6 +75,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         this.proxyPassword = Secret.fromString(proxyPassword);
         this.applicationCredentialUsername = applicationCredentialUsername;
         this.applicationCredentialPassword = Secret.fromString(applicationCredentialPassword);
+        this.applicationCredentialComments = applicationCredentialComments;
         this.proxyUnsecuredConnection = proxyUnsecuredConnection;
         this.sendBuildDirectlyFromRemote = sendBuildDirectlyFromRemote;
     }
@@ -163,11 +168,9 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             return;
         }
 
-        // Then upload the build to DT
-        if (proxyHostname == null || proxyHostname.isEmpty()) {
-            listener.getLogger().println("No proxy configuration");
+        // Configure proxy and credentials
 
-            sendBuild = new SendBuildAction(
+        sendBuild = new SendBuildAction(
                     getSecretKey(run, listener),
                     listener,
                     workspace,
@@ -175,33 +178,50 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
                     findSourceMapResult,
                     isBuildStoredInArtifactFolder
             );
+
+        if (proxyHostname == null || proxyHostname.isEmpty()) {
+            listener.getLogger().println("No proxy configuration");
         }
-        else {
+        else
+        {
             listener.getLogger().println("Proxy Configuration is : " + proxyHostname + ":" + proxyPort);
+            try {
+                Proxy proxy = new Proxy(
+                        listener,
+                        proxyHostname,
+                        proxyPort,
+                        proxyUsername,
+                        proxyPassword.getPlainText(),
+                        proxyUnsecuredConnection
+                );
+                sendBuild.setProxy(proxy);
+            } catch (IllegalArgumentException e){
+                run.setResult(Result.UNSTABLE);
+                return;
+            }
 
-            sendBuild = new SendBuildAction(
-                    getSecretKey(run, listener),
-                    listener,
-                    workspace,
-                    buildPath,
-                    findSourceMapResult,
-                    isBuildStoredInArtifactFolder,
-                    proxyHostname,
-                    proxyPort,
-                    proxyUsername,
-                    proxyPassword.getPlainText(),
-                    proxyUnsecuredConnection
-            );
         }
-
-        // Set credentials
         if (applicationCredentialUsername != null  && !applicationCredentialUsername.isEmpty()) {
+            // Set application credentials
+            try{
+                ApplicationCredential applicationCredential = new ApplicationCredential(
+                        listener,
+                        applicationCredentialUsername,
+                        applicationCredentialPassword.getPlainText()
+                );
 
-            sendBuild.setApplicationCredentialUsername(applicationCredentialUsername);
+                if (applicationCredentialComments != null && !applicationCredentialComments.isEmpty()) {
+                    applicationCredential.setComments(applicationCredentialComments);
+                }
+
+                sendBuild.setApplicationCredential(applicationCredential);
+            } catch (IllegalArgumentException e) {
+                run.setResult(Result.UNSTABLE);
+                return;
+            }
         }
-        if (applicationCredentialPassword != null) {
-            sendBuild.setApplicationCredentialPassword(applicationCredentialPassword.getPlainText());
-        }
+
+        // Then upload the build to DT
 
         SendBuildMessage sendBuildResult;
         if (sendBuildDirectlyFromRemote){
@@ -294,6 +314,9 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         return applicationCredentialPassword;
     }
 
+    public String getApplicationCredentialComments() {
+        return applicationCredentialComments;
+    }
     @Extension
     // Define the symbols needed to call the jenkins plugin in a DSL pipeline
     @Symbol({
@@ -309,7 +332,8 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             "dataTheoremUploadApiKey",
             "sendBuildDirectlyFromRemote",
             "applicationCredentialUsername",
-            "applicationCredentialPassword"
+            "applicationCredentialPassword",
+            "applicationCredentialComments"
 
     })
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {

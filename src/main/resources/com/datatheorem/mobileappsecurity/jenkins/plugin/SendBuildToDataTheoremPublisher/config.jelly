@@ -48,5 +48,8 @@
         <f:entry title="${%password}" field="applicationCredentialPassword">
             <f:password type="password"/>
         </f:entry>
+         <f:entry title="${%comment}" field="applicationCredentialComments">
+            <f:textbox />
+         </f:entry>
     </f:advanced>
 </j:jelly>
