@@ -1,11 +1,9 @@
 package com.datatheorem.mobileappsecurity.jenkins.plugin.sendbuild;
 
-import hudson.model.Result;
 import hudson.model.TaskListener;
-import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 
-public class ApplicationCredential {
+public class ApplicationCredential  implements java.io.Serializable{
     private TaskListener listener;
     private String username;
     private String password;
