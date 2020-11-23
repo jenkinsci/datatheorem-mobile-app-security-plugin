@@ -1,20 +1,10 @@
-Older versions of this plugin may not be safe to use. Please review the
-following warnings before using an older version:
-
--   [Credentials stored in plain
-    text](https://jenkins.io/security/advisory/2019-09-25/#SECURITY-1557)
-
 ## Purpose
 
-This plugin allows you to automatically upload mobile applications
-packages to Data Theorem's App Secure service at the end of the CI
-process.
-
-App Secure is a continuous automated security service that scans mobile
-applications (iOS and Android) for security and privacy issues.
-
-More informations about this product are available
-here: <https://www.datatheorem.com/products/app-secure>
+Data Theorem Jenkins' plugin allows developers to scan pre-production apps
+automatically via the CI pipeline. Data Theorem's Mobile Secure product will scan
+each pre-production release automatically (up to 7000 releases/day) for security & privacy issues using static,
+dynamic, and behavioral analysis for both iOS and Android applications.
+More information can be found here: https://www.datatheorem.com/products/mobile-secure
 
 ## Requirements
 

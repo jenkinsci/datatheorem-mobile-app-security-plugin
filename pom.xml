@@ -9,15 +9,15 @@
     </parent>
     <groupId>com.datatheorem.mobileappsecurity.jenkins.plugin</groupId>
     <artifactId>datatheorem-mobile-app-security</artifactId>
-    <version>2.1.0-SNAPSHOT</version>
+    <version>2.2.0-SNAPSHOT</version>
     <packaging>hpi</packaging>
     <properties>
         <!-- Baseline Jenkins version you use to build the plugin. Users must have this version or newer to run. -->
         <jenkins.version>2.164.3</jenkins.version>
         <java.level>8</java.level>
     </properties>
-    <name>Data Theorem: CI/CD Plugin</name>
-    <description>Jenkins plugin to automatically upload builds to Data Theorem</description>
+    <name>Data Theorem Mobile Security: CI/CD Plugin</name>
+    <description>Jenkins plugin to automatically upload builds to Data Theorem Mobile Security</description>
     <!-- The default licence for Jenkins OSS Plugins is MIT. Substitute for the applicable one if needed. -->
     <licenses>
         <license>

@@ -27,6 +27,10 @@ public class SendBuildToDataTheoremPublisherTest {
     private final String proxyPassword = "pwd123456789";
     private final boolean proxyUnsecuredConnection = false;
     private final boolean sendBuildFromRemote = false;
+    private final String applicationCredentialPassword = "apppwd1234567";
+    private final String applicationCredentialUsername = "marco";
+    private final String applicationCredentialComments = "test comment";
+
     @Rule
     public JenkinsRule jenkins = new JenkinsRule();
 
@@ -35,14 +39,14 @@ public class SendBuildToDataTheoremPublisherTest {
         /*
          * Check if the plugin can be added has a publisher action to a jenkins job
          */
-        FreeStyleProject job = jenkins.createFreeStyleProject();
+        FreeStyleProject job = jenkins.createFreeStyleProject("test");
         SendBuildToDataTheoremPublisher sendBuilder = new SendBuildToDataTheoremPublisher(
-                buildName, sourceMapToUpload, dontUpload, proxyHostname, proxyPort, proxyUsername, proxyPassword, proxyUnsecuredConnection, sendBuildFromRemote);
+                buildName, sourceMapToUpload, dontUpload, proxyHostname, proxyPort, proxyUsername, proxyPassword, proxyUnsecuredConnection, sendBuildFromRemote, applicationCredentialUsername, applicationCredentialPassword, applicationCredentialComments);
         job.getPublishersList().add(sendBuilder);
         job = jenkins.configRoundtrip(job);
 
         SendBuildToDataTheoremPublisher lhs = new SendBuildToDataTheoremPublisher(
-                buildName, sourceMapToUpload, dontUpload, proxyHostname, proxyPort, proxyUsername, proxyPassword, proxyUnsecuredConnection, sendBuildFromRemote);
+                buildName, sourceMapToUpload, dontUpload, proxyHostname, proxyPort, proxyUsername, proxyPassword, proxyUnsecuredConnection, sendBuildFromRemote, applicationCredentialUsername, applicationCredentialPassword, applicationCredentialComments);
         jenkins.assertEqualDataBoundBeans(lhs, job.getPublishersList().get(0));
     }
 
@@ -59,7 +63,7 @@ public class SendBuildToDataTheoremPublisherTest {
                     new hudson.tasks.Shell("#!/bin/bash\n touch test-1.12.45.apk"));
 
             SendBuildToDataTheoremPublisher sendBuilder = new SendBuildToDataTheoremPublisher(
-                    buildName, null, dontUpload, proxyHostname, proxyPort, proxyUsername, "", proxyUnsecuredConnection, sendBuildFromRemote);
+                    buildName, null, dontUpload, proxyHostname, proxyPort, proxyUsername, "", proxyUnsecuredConnection, sendBuildFromRemote, applicationCredentialUsername, applicationCredentialPassword, applicationCredentialComments);
             job.getPublishersList().add(sendBuilder);
 
             FreeStyleBuild completedBuild = jenkins.assertBuildStatusSuccess(job.scheduleBuild2(0));
@@ -84,7 +88,7 @@ public class SendBuildToDataTheoremPublisherTest {
                     new hudson.tasks.Shell("#!/bin/bash\n touch test-mapping.txt"));
 
             SendBuildToDataTheoremPublisher sendBuilder = new SendBuildToDataTheoremPublisher(
-                    buildName, null, dontUpload, proxyHostname, proxyPort, proxyUsername, "", proxyUnsecuredConnection, sendBuildFromRemote);
+                    buildName, null, dontUpload, proxyHostname, proxyPort, proxyUsername, "", proxyUnsecuredConnection, sendBuildFromRemote, applicationCredentialUsername, applicationCredentialPassword, applicationCredentialComments);
             job.getPublishersList().add(sendBuilder);
 
             FreeStyleBuild completedBuild = jenkins.assertBuildStatusSuccess(job.scheduleBuild2(0));
@@ -107,7 +111,18 @@ public class SendBuildToDataTheoremPublisherTest {
                             "touch test.apk"));
 
             SendBuildToDataTheoremPublisher sendBuilder = new SendBuildToDataTheoremPublisher(
-                    buildName, null, dontUpload, proxyHostname, proxyPort, proxyUsername, "", proxyUnsecuredConnection, sendBuildFromRemote);
+                    buildName,
+                    null,
+                    dontUpload,
+                    proxyHostname,
+                    proxyPort,
+                    proxyUsername,
+                    proxyPassword,
+                    proxyUnsecuredConnection,
+                    sendBuildFromRemote,
+                    applicationCredentialUsername,
+                    applicationCredentialPassword,
+                    applicationCredentialComments);
             job.getPublishersList().add(sendBuilder);
 
             FreeStyleBuild completedBuild = jenkins.assertBuildStatus(Result.UNSTABLE, job.scheduleBuild2(0));

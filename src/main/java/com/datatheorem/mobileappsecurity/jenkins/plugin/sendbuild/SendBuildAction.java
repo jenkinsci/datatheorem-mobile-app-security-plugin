@@ -51,7 +51,7 @@ public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage>
     private final TaskListener listener; // Jenkins logger
     private final FilePath workspace;
     private String uploadUrl;
-    private String version = "2.1.0";
+    private String version = "2.2.0";
     private final String proxyHostname;
     private final int proxyPort;
     private final String proxyUsername;
@@ -60,8 +60,8 @@ public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage>
     String buildPath;
     String sourceMapPath;
     Boolean isBuildStoredInArtifactFolder;
-
-
+    private ApplicationCredential applicationCredential = null;
+    private Proxy proxy = null;
     public SendBuildAction(String apiKey,
                            TaskListener listener,
                            FilePath workspace,
@@ -267,38 +267,7 @@ public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage>
          */
 
         HttpClientBuilder clientBuilder = HttpClientBuilder.create();
-        clientBuilder.useSystemProperties();
-
-        if (proxyUnsecureConnection)
-            try {
-                listener.getLogger().println("Insecure connection option is check: bypassing SSL Validation");
-                SSLConnectionSocketFactory acceptAllCertificate = new SSLConnectionSocketFactory(
-                        SSLContexts.custom().loadTrustMaterial(null, new TrustSelfSignedStrategy()).build(),
-                        NoopHostnameVerifier.INSTANCE);
-
-                clientBuilder.setSSLSocketFactory(acceptAllCertificate);
-            } catch (NoSuchAlgorithmException | KeyManagementException | KeyStoreException e) {
-               listener.getLogger().println(e.getMessage());
-            }
-
-        if (proxyHostname == null || proxyHostname.isEmpty())
-            return clientBuilder.disableAutomaticRetries().build();
-
-        clientBuilder.setProxy(new HttpHost(proxyHostname, proxyPort));
-
-        if (proxyUsername == null || proxyUsername.isEmpty()) {
-            listener.getLogger().println("Proxy has no username/password authentification");
-            return clientBuilder.disableAutomaticRetries().build();
-        }
-
-        listener.getLogger().println("Proxy is set using username/password authentification");
-
-        // Add the User/Password proxy authentication
-        NTCredentials ntCreds = new NTCredentials(proxyUsername, proxyPassword, "", "");
-        CredentialsProvider credsProvider = new BasicCredentialsProvider();
-        credsProvider.setCredentials(new AuthScope(proxyHostname, proxyPort), ntCreds);
-        clientBuilder.setDefaultCredentialsProvider(credsProvider);
-        clientBuilder.setProxyAuthenticationStrategy(new ProxyAuthenticationStrategy());
+        if (proxy != null)proxy.add_to_http_client(clientBuilder);
 
         // build the client without automatic retry mechanism
         return clientBuilder.disableAutomaticRetries().build();
@@ -392,22 +361,23 @@ public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage>
                 "multipart/form-data",
                 new BasicNameValuePair("boundary", "\"jenkinsautouploadboundary\""))
         );
+
+        // Add the application to the entity
+        listener.getLogger().println("Build file path is: " + buildPath);
+        if (isBuildStoredInArtifactFolder) {
+            // if the build is in the permanent artifact directory we can upload it directly
+            entity_builder.addBinaryBody("file", new File(buildPath));
+        }else {
+            AddContentToEntity(entity_builder, buildPath, "file", ContentType.DEFAULT_BINARY);
+        }
+        // Add the sourcemap file to the entity
         if (sourceMapPath != null) {
             listener.getLogger().println("Mapping file path is: " + sourceMapPath);
             AddContentToEntity(entity_builder, sourceMapPath, "sourcemap", ContentType.DEFAULT_TEXT);
         }
-        listener.getLogger().println("Build file path is: " + buildPath);
+        // Add the credential to the entity
+        if (applicationCredential != null) applicationCredential.add_credential_to_entity(entity_builder);
 
-        if (isBuildStoredInArtifactFolder) {
-            // if the build is in the permanent artifact directory we can upload it directly
-            entity_builder.addBinaryBody("file", new File(buildPath));
-            requestUploadbuild.setEntity(entity_builder.build());
-
-            // Add the api access key of the customer and tell to Upload API that the request comes from jenkins
-            return client.execute(requestUploadbuild);
-        }
-
-        AddContentToEntity(entity_builder, buildPath, "file", ContentType.DEFAULT_BINARY);
         requestUploadbuild.setEntity(entity_builder.build());
         listener.getLogger().println("Start uploading build to the endpoint: " + this.uploadUrl);
         // Add the api access key of the customer and tell to Upload API that the request comes from jenkins
@@ -429,5 +399,13 @@ public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage>
                     workspace.child(binaryPath).getName()
             ));
         }
+    }
+
+    public void setApplicationCredential(ApplicationCredential applicationCredential) {
+        this.applicationCredential = applicationCredential;
+    }
+
+    public void setProxy(Proxy proxy) {
+        this.proxy = proxy;
     }
 }

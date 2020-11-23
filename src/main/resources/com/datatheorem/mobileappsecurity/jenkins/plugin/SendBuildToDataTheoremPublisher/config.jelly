@@ -40,4 +40,16 @@
             <f:checkbox field="proxyUnsecuredConnection"/>
         </f:entry>
 	</f:advanced>
+
+	<f:advanced title="Application Credential Export">
+        <f:entry title="${%username}" field="applicationCredentialUsername">
+            <f:textbox />
+        </f:entry>
+        <f:entry title="${%password}" field="applicationCredentialPassword">
+            <f:password type="password"/>
+        </f:entry>
+         <f:entry title="${%comment}" field="applicationCredentialComments">
+            <f:textbox />
+         </f:entry>
+    </f:advanced>
 </j:jelly>

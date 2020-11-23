@@ -1,5 +1,7 @@
 package com.datatheorem.mobileappsecurity.jenkins.plugin;
 
+import com.datatheorem.mobileappsecurity.jenkins.plugin.sendbuild.ApplicationCredential;
+import com.datatheorem.mobileappsecurity.jenkins.plugin.sendbuild.Proxy;
 import com.datatheorem.mobileappsecurity.jenkins.plugin.sendbuild.SendBuildAction;
 import com.datatheorem.mobileappsecurity.jenkins.plugin.sendbuild.SendBuildMessage;
 import groovy.lang.Tuple2;
@@ -43,7 +45,9 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
     private final boolean proxyUnsecuredConnection;
     private String dataTheoremUploadApiKey = null;
     private final boolean sendBuildDirectlyFromRemote;
-
+    private final String applicationCredentialUsername;
+    private Secret applicationCredentialPassword;
+    private final String applicationCredentialComments;
     @DataBoundConstructor
     public SendBuildToDataTheoremPublisher(
             String buildToUpload,
@@ -54,8 +58,11 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             String proxyUsername,
             String proxyPassword,
             boolean proxyUnsecuredConnection,
-            boolean sendBuildDirectlyFromRemote
-        ) {
+            boolean sendBuildDirectlyFromRemote,
+            String applicationCredentialUsername,
+            String applicationCredentialPassword,
+            String applicationCredentialComments
+    ) {
         /*
         * Bind the parameter value of the job configuration page
         */
@@ -66,6 +73,9 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         this.proxyPort = proxyPort;
         this.proxyUsername = proxyUsername;
         this.proxyPassword = Secret.fromString(proxyPassword);
+        this.applicationCredentialUsername = applicationCredentialUsername;
+        this.applicationCredentialPassword = Secret.fromString(applicationCredentialPassword);
+        this.applicationCredentialComments = applicationCredentialComments;
         this.proxyUnsecuredConnection = proxyUnsecuredConnection;
         this.sendBuildDirectlyFromRemote = sendBuildDirectlyFromRemote;
     }
@@ -158,11 +168,9 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             return;
         }
 
-        // Then upload the build to DT
-        if (proxyHostname == null || proxyHostname.isEmpty()) {
-            listener.getLogger().println("No proxy configuration");
+        // Configure proxy and credentials
 
-            sendBuild = new SendBuildAction(
+        sendBuild = new SendBuildAction(
                     getSecretKey(run, listener),
                     listener,
                     workspace,
@@ -170,24 +178,51 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
                     findSourceMapResult,
                     isBuildStoredInArtifactFolder
             );
-        }
-        else {
-            listener.getLogger().println("Proxy Configuration is : " + proxyHostname + ":" + proxyPort);
 
-            sendBuild = new SendBuildAction(
-                    getSecretKey(run, listener),
-                    listener,
-                    workspace,
-                    buildPath,
-                    findSourceMapResult,
-                    isBuildStoredInArtifactFolder,
-                    proxyHostname,
-                    proxyPort,
-                    proxyUsername,
-                    proxyPassword.getPlainText(),
-                    proxyUnsecuredConnection
-            );
+        if (proxyHostname == null || proxyHostname.isEmpty()) {
+            listener.getLogger().println("No proxy configuration");
         }
+        else
+        {
+            listener.getLogger().println("Proxy Configuration is : " + proxyHostname + ":" + proxyPort);
+            try {
+                Proxy proxy = new Proxy(
+                        listener,
+                        proxyHostname,
+                        proxyPort,
+                        proxyUsername,
+                        proxyPassword.getPlainText(),
+                        proxyUnsecuredConnection
+                );
+                sendBuild.setProxy(proxy);
+            } catch (IllegalArgumentException e){
+                run.setResult(Result.UNSTABLE);
+                return;
+            }
+
+        }
+        if (applicationCredentialUsername != null  && !applicationCredentialUsername.isEmpty()) {
+            // Set application credentials
+            try{
+                ApplicationCredential applicationCredential = new ApplicationCredential(
+                        listener,
+                        applicationCredentialUsername,
+                        applicationCredentialPassword.getPlainText()
+                );
+
+                if (applicationCredentialComments != null && !applicationCredentialComments.isEmpty()) {
+                    applicationCredential.setComments(applicationCredentialComments);
+                }
+
+                sendBuild.setApplicationCredential(applicationCredential);
+            } catch (IllegalArgumentException e) {
+                run.setResult(Result.UNSTABLE);
+                return;
+            }
+        }
+
+        // Then upload the build to DT
+
         SendBuildMessage sendBuildResult;
         if (sendBuildDirectlyFromRemote){
             sendBuildResult = workspace.act(sendBuild);
@@ -271,6 +306,17 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         return sendBuildDirectlyFromRemote;
     }
 
+    public String getApplicationCredentialUsername() {
+        return applicationCredentialUsername;
+    }
+
+    public Secret getApplicationCredentialPassword() {
+        return applicationCredentialPassword;
+    }
+
+    public String getApplicationCredentialComments() {
+        return applicationCredentialComments;
+    }
     @Extension
     // Define the symbols needed to call the jenkins plugin in a DSL pipeline
     @Symbol({
@@ -284,7 +330,10 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             "proxyPassword",
             "proxyUnsecuredConnection",
             "dataTheoremUploadApiKey",
-            "sendBuildDirectlyFromRemote"
+            "sendBuildDirectlyFromRemote",
+            "applicationCredentialUsername",
+            "applicationCredentialPassword",
+            "applicationCredentialComments"
 
     })
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
