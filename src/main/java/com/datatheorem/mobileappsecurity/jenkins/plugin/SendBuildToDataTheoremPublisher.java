@@ -36,61 +36,32 @@ import java.io.Serializable;
 
 public class SendBuildToDataTheoremPublisher extends Publisher implements SimpleBuildStep, Serializable {
     private  String buildToUpload;
-    private  String mappingFileToUpload;
-    private final boolean dontUpload;
-    private final String proxyHostname;
-    private final int proxyPort;
-    private final String proxyUsername;
+    private  String mappingFileToUpload = null;
+    private  boolean dontUpload = false;
+    private  String proxyHostname = null;
+    private  int proxyPort = 0;
+    private  String proxyUsername = null;
     private Secret proxyPassword = null;
-    private final boolean proxyUnsecuredConnection;
+    private  boolean proxyUnsecuredConnection = false;
     private String dataTheoremUploadApiKey = null;
-    private final boolean sendBuildDirectlyFromRemote;
-    private final String applicationCredentialUsername;
-    private Secret applicationCredentialPassword;
-    private final String applicationCredentialComments;
+    private  boolean sendBuildDirectlyFromRemote = false;
+    private  String applicationCredentialUsername = null;
+    private Secret applicationCredentialPassword = null;
+    private  String applicationCredentialComments = null;
     @DataBoundConstructor
     public SendBuildToDataTheoremPublisher(
-            String buildToUpload,
-            String mappingFileToUpload,
-            boolean dontUpload,
-            String proxyHostname,
-            int proxyPort,
-            String proxyUsername,
-            String proxyPassword,
-            boolean proxyUnsecuredConnection,
-            boolean sendBuildDirectlyFromRemote,
-            String applicationCredentialUsername,
-            String applicationCredentialPassword,
-            String applicationCredentialComments
+            String buildToUpload
     ) {
         /*
         * Bind the parameter value of the job configuration page
         */
         this.buildToUpload = buildToUpload;
-        this.mappingFileToUpload = mappingFileToUpload;
-        this.dontUpload = dontUpload;
-        this.proxyHostname = proxyHostname;
-        this.proxyPort = proxyPort;
-        this.proxyUsername = proxyUsername;
-        this.proxyPassword = Secret.fromString(proxyPassword);
-        this.applicationCredentialUsername = applicationCredentialUsername;
-        this.applicationCredentialPassword = Secret.fromString(applicationCredentialPassword);
-        this.applicationCredentialComments = applicationCredentialComments;
-        this.proxyUnsecuredConnection = proxyUnsecuredConnection;
-        this.sendBuildDirectlyFromRemote = sendBuildDirectlyFromRemote;
     }
 
     public String getDataTheoremUploadApiKey() {
         return dataTheoremUploadApiKey;
     }
 
-    @DataBoundSetter
-    public void setDataTheoremUploadApiKey(String dataTheoremUploadApiKey) {
-        /*
-        * dataTheoremUploadApiKey can be set in a jenkins pipeline by adding dataTheoremUploadApiKey parameter at the call of the plugin
-        */
-        this.dataTheoremUploadApiKey = dataTheoremUploadApiKey;
-    }
 
     private String getSecretKey(Run<?,?> run, TaskListener listener) throws IOException, InterruptedException {
     /*
@@ -254,38 +225,38 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
     public String getBuildToUpload() {
 
         // Required to get the last value when we update a job config
-        return buildToUpload;
+        return this.buildToUpload;
     }
 
     public String getmappingFileToUpload() {
 
         // Required to get the last value when we update a job config
-        return mappingFileToUpload;
+        return this.mappingFileToUpload;
     }
 
     public boolean isDontUpload() {
 
         // Required to get the last value when we update a job config
-        return dontUpload;
+        return this.dontUpload;
     }
 
     public String getProxyHostname() {
         // Required to get the last value when we update a job config
 
-        return proxyHostname;
+        return this.proxyHostname;
     }
 
     public int getProxyPort() {
         // Required to get the last value when we update a job config
 
-        return proxyPort;
+        return this.proxyPort;
     }
 
 
     public String getProxyUsername() {
         // Required to get the last value when we update a job config
 
-        return proxyUsername;
+        return this.proxyUsername;
     }
 
     public Secret getProxyPassword() {
@@ -297,26 +268,97 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
     public boolean getProxyUnsecuredConnection() {
         // Required to get the last value when we update a job config
 
-        return proxyUnsecuredConnection;
+        return this.proxyUnsecuredConnection;
     }
 
     public boolean getSendBuildDirectlyFromRemote() {
         // Required to get the last value when we update a job config
 
-        return sendBuildDirectlyFromRemote;
+        return this.sendBuildDirectlyFromRemote;
     }
 
     public String getApplicationCredentialUsername() {
-        return applicationCredentialUsername;
+        return this.applicationCredentialUsername;
     }
 
     public Secret getApplicationCredentialPassword() {
-        return applicationCredentialPassword;
+        return this.applicationCredentialPassword;
     }
 
     public String getApplicationCredentialComments() {
         return applicationCredentialComments;
     }
+
+
+    @DataBoundSetter
+    public void setDataTheoremUploadApiKey(String dataTheoremUploadApiKey) {
+        /*
+         * dataTheoremUploadApiKey can be set in a jenkins pipeline by adding dataTheoremUploadApiKey parameter at the call of the plugin
+         */
+        this.dataTheoremUploadApiKey = dataTheoremUploadApiKey;
+    }
+
+    @DataBoundSetter
+    public void setBuildToUpload(String buildToUpload) {
+        this.buildToUpload = buildToUpload;
+    }
+
+    @DataBoundSetter
+    public void setMappingFileToUpload(String mappingFileToUpload) {
+        this.mappingFileToUpload = mappingFileToUpload;
+    }
+
+    @DataBoundSetter
+    public void setProxyPassword(String proxyPassword) {
+
+        this.proxyPassword = Secret.fromString(proxyPassword);
+    }
+
+    @DataBoundSetter
+    public void setApplicationCredentialPassword(String applicationCredentialPassword) {
+        this.applicationCredentialPassword = Secret.fromString(applicationCredentialPassword);
+    }
+
+    @DataBoundSetter
+    public void setDontUpload(boolean dontUpload) {
+        this.dontUpload = dontUpload;
+    }
+
+    @DataBoundSetter
+    public void setProxyHostname(String proxyHostname) {
+        this.proxyHostname = proxyHostname;
+    }
+
+    @DataBoundSetter
+    public void setProxyPort(int proxyPort) {
+        this.proxyPort = proxyPort;
+    }
+
+    @DataBoundSetter
+    public void setProxyUsername(String proxyUsername) {
+        this.proxyUsername = proxyUsername;
+    }
+
+    @DataBoundSetter
+    public void setProxyUnsecuredConnection(boolean proxyUnsecuredConnection) {
+        this.proxyUnsecuredConnection = proxyUnsecuredConnection;
+    }
+
+    @DataBoundSetter
+    public void setSendBuildDirectlyFromRemote(boolean sendBuildDirectlyFromRemote) {
+        this.sendBuildDirectlyFromRemote = sendBuildDirectlyFromRemote;
+    }
+
+    @DataBoundSetter
+    public void setApplicationCredentialUsername(String applicationCredentialUsername) {
+        this.applicationCredentialUsername = applicationCredentialUsername;
+    }
+
+    @DataBoundSetter
+    public void setApplicationCredentialComments(String applicationCredentialComments) {
+        this.applicationCredentialComments = applicationCredentialComments;
+    }
+
     @Extension
     // Define the symbols needed to call the jenkins plugin in a DSL pipeline
     @Symbol({
