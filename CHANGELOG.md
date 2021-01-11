@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+version 2.2.1
+-------------
+* Change: Various parameters have been changed to optionals
+
 version 2.2.0
 -------------
 * New: Add a feature to send application credentials to Data Theorem
