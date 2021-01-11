@@ -17,7 +17,7 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 
-public class Proxy {
+public class Proxy  implements java.io.Serializable{
     private TaskListener listener;
 
     private String hostname;
