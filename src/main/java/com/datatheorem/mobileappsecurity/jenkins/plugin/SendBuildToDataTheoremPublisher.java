@@ -400,7 +400,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             "applicationCredentialUsername",
             "applicationCredentialPassword",
             "applicationCredentialComments",
-            "releaseType"
+            "releaseType",
 
     })
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
