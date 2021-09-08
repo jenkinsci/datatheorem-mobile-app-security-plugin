@@ -30,6 +30,8 @@ public class SendBuildToDataTheoremPublisherTest {
         FreeStyleProject job = jenkins.createFreeStyleProject("test");
         SendBuildToDataTheoremPublisher sendBuilder = new SendBuildToDataTheoremPublisher(
                 buildName);
+        sendBuilder.setReleaseType("ENTERPRISE");
+
         job.getPublishersList().add(sendBuilder);
         job = jenkins.configRoundtrip(job);
 
@@ -49,6 +51,8 @@ public class SendBuildToDataTheoremPublisherTest {
 
             SendBuildToDataTheoremPublisher sendBuilder = new SendBuildToDataTheoremPublisher(
                     buildName);
+            sendBuilder.setReleaseType("ENTERPRISE");
+
             job.getPublishersList().add(sendBuilder);
 
             FreeStyleBuild completedBuild = jenkins.assertBuildStatusSuccess(job.scheduleBuild2(0));
@@ -74,6 +78,8 @@ public class SendBuildToDataTheoremPublisherTest {
 
             SendBuildToDataTheoremPublisher sendBuilder = new SendBuildToDataTheoremPublisher(
                     buildName);
+            sendBuilder.setReleaseType("ENTERPRISE");
+
             job.getPublishersList().add(sendBuilder);
 
             FreeStyleBuild completedBuild = jenkins.assertBuildStatusSuccess(job.scheduleBuild2(0));
@@ -97,6 +103,8 @@ public class SendBuildToDataTheoremPublisherTest {
 
             SendBuildToDataTheoremPublisher sendBuilder = new SendBuildToDataTheoremPublisher(
                     buildName);
+            sendBuilder.setReleaseType("ENTERPRISE");
+
             job.getPublishersList().add(sendBuilder);
 
             FreeStyleBuild completedBuild = jenkins.assertBuildStatus(Result.UNSTABLE, job.scheduleBuild2(0));
@@ -106,4 +114,27 @@ public class SendBuildToDataTheoremPublisherTest {
         }
     }
 
+    @Test
+    public void testWrongReleaseType() throws Exception {
+        /*
+         * Check if the plugin can set the result to unstable if no build have been found
+         */
+        if (isUnix()) {
+            FreeStyleProject job = jenkins.createFreeStyleProject();
+
+            job.getBuildersList().add(
+                    new hudson.tasks.Shell("#!/bin/bash\n " +
+                            "touch test.apk"));
+
+            SendBuildToDataTheoremPublisher sendBuilder = new SendBuildToDataTheoremPublisher(
+                    buildName);
+            sendBuilder.setReleaseType("APP STORE");
+            job.getPublishersList().add(sendBuilder);
+
+            FreeStyleBuild completedBuild = jenkins.assertBuildStatus(Result.UNSTABLE, job.scheduleBuild2(0));
+
+            String expectedString = "Only PRE_PROD and ENTERPRISE release type are allowed";
+            jenkins.assertLogContains(expectedString, completedBuild);
+        }
+    }
 }

@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+
+version 2.3.0
+-------------
+* New: Add optional field: release_type. It will default to PRE_PROD
+
 version 2.2.1
 -------------
 * Change: Various parameters have been changed to optionals
