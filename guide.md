@@ -8,7 +8,7 @@ More information can be found here: https://www.datatheorem.com/products/mobile-
 
 ## Requirements
 
-The Jenkins minimal version requirement is 2.164.3.
+The Jenkins minimal version requirement is 2.222.4.
 
 The plugin also requires:
 

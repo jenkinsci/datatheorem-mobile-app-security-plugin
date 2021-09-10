@@ -24,7 +24,7 @@ here: <https://www.datatheorem.com/products/app-secure>
 
 ## Requirements
 
-The Jenkins minimal version requirement is 2.121.1
+The Jenkins minimal version requirement is 2.222.4
 
 The plugin also requires:
 
