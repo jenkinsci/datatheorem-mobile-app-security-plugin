@@ -10,7 +10,10 @@
    </f:entry>
    <f:advanced>
       <f:entry title="${%Build Release Type}" field="releaseType">
-         <f:textbox />
+             <select name="releaseType">
+                 <option value="PRE_PROD">Pre Production</option>
+                 <option value="ENTERPRISE">Enterprise</option>
+             </select>
       </f:entry>
       <f:entry title="${%Android Mapping File}" field="mappingFileToUpload">
          <f:textbox />

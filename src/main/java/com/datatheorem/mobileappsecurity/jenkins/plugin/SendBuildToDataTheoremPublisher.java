@@ -434,18 +434,6 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             return FormValidation.ok();
         }
 
-        public FormValidation doCheckReleaseType(
-                @QueryParameter(value = "releaseType") String releaseType
-        )
-        {
-            if (releaseType.isEmpty())
-                return FormValidation.ok();
-            if (!Arrays.asList("ENTERPRISE", "PRE_PROD").contains(releaseType))
-                return FormValidation.error("release_type should be either PRE_PROD or ENTERPRISE");
-
-            return FormValidation.ok();
-        }
-
         @Override
         public String getDisplayName() {
             return "Upload build to Data Theorem";
