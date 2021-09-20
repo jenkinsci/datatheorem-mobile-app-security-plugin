@@ -258,6 +258,8 @@ public class SendBuildTest {
                 .andReturn(response);
 
         replay(uploadMock);
+        // And the release type is set to ENTERPRISE
+        uploadMock.setReleaseType("ENTERPRISE");
         SendBuildMessage uploadInitMessage = uploadMock.uploadInit();
 
         Assert.assertEquals(

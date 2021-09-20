@@ -62,6 +62,8 @@ public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage>
     Boolean isBuildStoredInArtifactFolder;
     private ApplicationCredential applicationCredential = null;
     private Proxy proxy = null;
+    private String releaseType = "PRE_PROD";
+
     public SendBuildAction(String apiKey,
                            TaskListener listener,
                            FilePath workspace,
@@ -375,8 +377,11 @@ public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage>
             listener.getLogger().println("Mapping file path is: " + sourceMapPath);
             AddContentToEntity(entity_builder, sourceMapPath, "sourcemap", ContentType.DEFAULT_TEXT);
         }
+
         // Add the credential to the entity
         if (applicationCredential != null) applicationCredential.add_credential_to_entity(entity_builder);
+
+        entity_builder.addTextBody("release_type", releaseType);
 
         requestUploadbuild.setEntity(entity_builder.build());
         listener.getLogger().println("Start uploading build to the endpoint: " + this.uploadUrl);
@@ -407,5 +412,9 @@ public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage>
 
     public void setProxy(Proxy proxy) {
         this.proxy = proxy;
+    }
+
+    public void setReleaseType(String releaseType) {
+        this.releaseType = releaseType;
     }
 }

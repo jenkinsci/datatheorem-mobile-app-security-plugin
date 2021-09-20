@@ -1,55 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:st="jelly:stapler" xmlns:d="jelly:define" xmlns:l="/lib/layout" xmlns:t="/lib/hudson" xmlns:f="/lib/form">
-	<f:entry title="">
-		<p>Please define API Key using Credentials link on side bar, then
-		   bind that value with DATA_THEOREM_UPLOAD_API_KEY variable.
-		</p>
-	</f:entry>
+<j:jelly xmlns:j="jelly:core" xmlns:d="jelly:define" xmlns:f="/lib/form" xmlns:l="/lib/layout" xmlns:st="jelly:stapler" xmlns:t="/lib/hudson">
+   <f:entry title="">
+      <p>Please define API Key using Credentials link on side bar, then
+		   bind that value with DATA_THEOREM_UPLOAD_API_KEY variable.</p>
+   </f:entry>
    <f:entry title="${%Build To Upload}" field="buildToUpload">
-        <f:textbox />
-    </f:entry>
-    <f:advanced>
-	    <f:entry title="${%Android Mapping File}" field="mappingFileToUpload">
-		    <f:textbox />
-		 </f:entry>
-	     <f:entry title="${%Dont Upload Build}" field="dontUpload">
-            <f:checkbox field="dontUpload"/>
-	     </f:entry>
-	     <f:entry title="${%Use the building node to send the build}" field="sendBuildDirectlyFromRemote">
-             <f:checkbox field="sendBuildDirectlyFromRemote"/>
-         </f:entry>
-	</f:advanced>
-	<f:advanced title="Proxy Configuration">
-
-	    <f:entry title="" field="proxyConfig">
-	        <h2> Proxy Configuration </h2>
-        </f:entry>
-	    <f:entry title="${%Proxy Server Hostname}" field="proxyHostname">
-            <f:textbox />
-        </f:entry>
-	    <f:entry title="${%Proxy Server Port}" field="proxyPort">
-            <f:textbox />
-        </f:entry>
-	    <f:entry title="${%Username}" field="proxyUsername">
-            <f:textbox />
-        </f:entry>
-	    <f:entry title="${%Password}" field="proxyPassword">
-            <f:password type="password"/>
-        </f:entry>
-        <f:entry title="${%Allow unsecured connections}" field="proxyUnsecuredConnection">
-            <f:checkbox field="proxyUnsecuredConnection"/>
-        </f:entry>
-	</f:advanced>
-
-	<f:advanced title="Application Credential Export">
-        <f:entry title="${%username}" field="applicationCredentialUsername">
-            <f:textbox />
-        </f:entry>
-        <f:entry title="${%password}" field="applicationCredentialPassword">
-            <f:password type="password"/>
-        </f:entry>
-         <f:entry title="${%comment}" field="applicationCredentialComments">
-            <f:textbox />
-         </f:entry>
-    </f:advanced>
+      <f:textbox />
+   </f:entry>
+   <f:advanced>
+      <f:entry title="${%Build Release Type}" field="releaseType">
+             <select name="releaseType">
+                 <option value="PRE_PROD">Pre Production</option>
+                 <option value="ENTERPRISE">Enterprise</option>
+             </select>
+      </f:entry>
+      <f:entry title="${%Android Mapping File}" field="mappingFileToUpload">
+         <f:textbox />
+      </f:entry>
+      <f:entry title="${%Dont Upload Build}" field="dontUpload">
+         <f:checkbox field="dontUpload" />
+      </f:entry>
+      <f:entry title="${%Use the building node to send the build}" field="sendBuildDirectlyFromRemote">
+         <f:checkbox field="sendBuildDirectlyFromRemote" />
+      </f:entry>
+   </f:advanced>
+   <f:advanced title="Proxy Configuration">
+      <f:entry title="" field="proxyConfig">
+         <h2>Proxy Configuration</h2>
+      </f:entry>
+      <f:entry title="${%Proxy Server Hostname}" field="proxyHostname">
+         <f:textbox />
+      </f:entry>
+      <f:entry title="${%Proxy Server Port}" field="proxyPort">
+         <f:textbox />
+      </f:entry>
+      <f:entry title="${%Username}" field="proxyUsername">
+         <f:textbox />
+      </f:entry>
+      <f:entry title="${%Password}" field="proxyPassword">
+         <f:password type="password" />
+      </f:entry>
+      <f:entry title="${%Allow unsecured connections}" field="proxyUnsecuredConnection">
+         <f:checkbox field="proxyUnsecuredConnection" />
+      </f:entry>
+   </f:advanced>
+   <f:advanced title="Application Credential Export">
+      <f:entry title="${%username}" field="applicationCredentialUsername">
+         <f:textbox />
+      </f:entry>
+      <f:entry title="${%password}" field="applicationCredentialPassword">
+         <f:password type="password" />
+      </f:entry>
+      <f:entry title="${%comment}" field="applicationCredentialComments">
+         <f:textbox />
+      </f:entry>
+   </f:advanced>
 </j:jelly>

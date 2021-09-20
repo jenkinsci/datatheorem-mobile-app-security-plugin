@@ -14,6 +14,7 @@ import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
+import jdk.nashorn.internal.runtime.regexp.joni.exception.ValueException;
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -23,6 +24,7 @@ import org.kohsuke.stapler.QueryParameter;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Arrays;
 
 /**
  * This class aims to provide a simple plugin to automatically upload builds to Data Theorem Upload API.
@@ -48,6 +50,8 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
     private  String applicationCredentialUsername = null;
     private Secret applicationCredentialPassword = null;
     private  String applicationCredentialComments = null;
+    private  String releaseType = null;
+
     @DataBoundConstructor
     public SendBuildToDataTheoremPublisher(
             String buildToUpload
@@ -172,6 +176,16 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             }
 
         }
+
+        if (releaseType != null && !releaseType.isEmpty()){
+            if (!Arrays.asList("ENTERPRISE", "PRE_PROD").contains(releaseType)){
+                listener.getLogger().println("Only PRE_PROD and ENTERPRISE release type are allowed");
+                run.setResult(Result.UNSTABLE);
+                return;
+
+            }
+            sendBuild.setReleaseType(releaseType);
+        }
         if (applicationCredentialUsername != null  && !applicationCredentialUsername.isEmpty()) {
             // Set application credentials
             try{
@@ -290,6 +304,11 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
     }
 
 
+    public String getReleaseType() {
+        return releaseType;
+    }
+
+
     @DataBoundSetter
     public void setDataTheoremUploadApiKey(String dataTheoremUploadApiKey) {
         /*
@@ -359,6 +378,11 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         this.applicationCredentialComments = applicationCredentialComments;
     }
 
+    @DataBoundSetter
+    public void setReleaseType(String releaseType){
+        this.releaseType = releaseType;
+    }
+
     @Extension
     // Define the symbols needed to call the jenkins plugin in a DSL pipeline
     @Symbol({
@@ -375,7 +399,8 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             "sendBuildDirectlyFromRemote",
             "applicationCredentialUsername",
             "applicationCredentialPassword",
-            "applicationCredentialComments"
+            "applicationCredentialComments",
+            "releaseType",
 
     })
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
