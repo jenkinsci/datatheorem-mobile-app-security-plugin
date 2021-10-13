@@ -1,13 +1,16 @@
 CHANGELOG
 =========
 
+version 2.4.0
+-------------
+
+* New: Add optional field: `external_id`.
 
 version 2.3.0
 -------------
 * Change: Update jenkins minimum version to 2.222.4 (2020-05-24)
 * Updated: Vulnerable Dependencies were updated
-* New: Add optional field: release_type. It will default to PRE_PROD
-
+* New: Add optional field: `release_type`. It will default to `PRE_PROD`
 
 version 2.2.1
 -------------
