@@ -51,6 +51,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
     private Secret applicationCredentialPassword = null;
     private  String applicationCredentialComments = null;
     private  String releaseType = null;
+    private  String externalId = null;
 
     @DataBoundConstructor
     public SendBuildToDataTheoremPublisher(
@@ -186,7 +187,17 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             }
             sendBuild.setReleaseType(releaseType);
         }
-        if (applicationCredentialUsername != null  && !applicationCredentialUsername.isEmpty()) {
+
+        if (externalId != null) {
+            if (externalId.isEmpty()) {
+                listener.getLogger().println("External ID cannot be set to an empty string");
+                run.setResult(Result.UNSTABLE);
+                return;
+            }
+            sendBuild.setExternalId(externalId);
+        }
+
+        if (applicationCredentialUsername != null && !applicationCredentialUsername.isEmpty()) {
             // Set application credentials
             try{
                 ApplicationCredential applicationCredential = new ApplicationCredential(
@@ -308,6 +319,9 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
         return releaseType;
     }
 
+    public String getExternalId() {
+        return externalId;
+    }
 
     @DataBoundSetter
     public void setDataTheoremUploadApiKey(String dataTheoremUploadApiKey) {
@@ -379,29 +393,34 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
     }
 
     @DataBoundSetter
-    public void setReleaseType(String releaseType){
+    public void setReleaseType(String releaseType) {
         this.releaseType = releaseType;
+    }
+
+    @DataBoundSetter
+    public void setExternalId(String externalId) {
+        this.externalId = externalId
     }
 
     @Extension
     // Define the symbols needed to call the jenkins plugin in a DSL pipeline
     @Symbol({
-            "sendBuildToDataTheorem",
-            "buildToUpload",
-            "mappingFileToUpload",
-            "dontUpload",
-            "proxyHostname",
-            "proxyPort",
-            "proxyUsername",
-            "proxyPassword",
-            "proxyUnsecuredConnection",
-            "dataTheoremUploadApiKey",
-            "sendBuildDirectlyFromRemote",
-            "applicationCredentialUsername",
-            "applicationCredentialPassword",
-            "applicationCredentialComments",
-            "releaseType",
-
+        "sendBuildToDataTheorem",
+        "buildToUpload",
+        "mappingFileToUpload",
+        "dontUpload",
+        "proxyHostname",
+        "proxyPort",
+        "proxyUsername",
+        "proxyPassword",
+        "proxyUnsecuredConnection",
+        "dataTheoremUploadApiKey",
+        "sendBuildDirectlyFromRemote",
+        "applicationCredentialUsername",
+        "applicationCredentialPassword",
+        "applicationCredentialComments",
+        "releaseType",
+        "externalId",
     })
     public static final class DescriptorImpl extends BuildStepDescriptor<Publisher> {
 

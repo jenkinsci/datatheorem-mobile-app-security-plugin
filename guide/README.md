@@ -5,8 +5,7 @@
 Older versions of this plugin may not be safe to use. Please review the
 following warnings before using an older version:
 
--   [Credentials stored in plain
-    text](https://jenkins.io/security/advisory/2019-09-25/#SECURITY-1557)
+-   [Credentials stored in plain text](https://jenkins.io/security/advisory/2019-09-25/#SECURITY-1557)
 
   
 
@@ -20,7 +19,7 @@ App Secure is a continuous automated security service that scans mobile
 applications (iOS and Android) for security and privacy issues.
 
 More informations about this product are available
-here: <https://www.datatheorem.com/products/app-secure>
+here: <https://www.datatheorem.com/products/mobile-secure>
 
 ## Requirements
 

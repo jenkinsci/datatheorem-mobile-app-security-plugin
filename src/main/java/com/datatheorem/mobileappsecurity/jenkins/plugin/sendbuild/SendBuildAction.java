@@ -63,6 +63,7 @@ public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage>
     private ApplicationCredential applicationCredential = null;
     private Proxy proxy = null;
     private String releaseType = "PRE_PROD";
+    private String externalId = null;
 
     public SendBuildAction(String apiKey,
                            TaskListener listener,
@@ -382,6 +383,7 @@ public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage>
         if (applicationCredential != null) applicationCredential.add_credential_to_entity(entity_builder);
 
         entity_builder.addTextBody("release_type", releaseType);
+        entity_builder.addTextBody("externalId", externalId);
 
         requestUploadbuild.setEntity(entity_builder.build());
         listener.getLogger().println("Start uploading build to the endpoint: " + this.uploadUrl);
@@ -416,5 +418,9 @@ public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage>
 
     public void setReleaseType(String releaseType) {
         this.releaseType = releaseType;
+    }
+
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
     }
 }
