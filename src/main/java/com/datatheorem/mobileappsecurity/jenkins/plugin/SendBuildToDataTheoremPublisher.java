@@ -14,7 +14,6 @@ import hudson.tasks.BuildStepMonitor;
 import hudson.tasks.Publisher;
 import hudson.util.FormValidation;
 import hudson.util.Secret;
-import jdk.nashorn.internal.runtime.regexp.joni.exception.ValueException;
 import jenkins.tasks.SimpleBuildStep;
 import org.jenkinsci.Symbol;
 import org.kohsuke.stapler.DataBoundConstructor;
@@ -188,12 +187,8 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
             sendBuild.setReleaseType(releaseType);
         }
 
-        if (externalId != null) {
-            if (externalId.isEmpty()) {
-                listener.getLogger().println("External ID cannot be set to an empty string");
-                run.setResult(Result.UNSTABLE);
-                return;
-            }
+        if (externalId != null && !externalId.isEmpty()) {
+            listener.getLogger().println("Uploading with external ID");
             sendBuild.setExternalId(externalId);
         }
 
@@ -399,7 +394,7 @@ public class SendBuildToDataTheoremPublisher extends Publisher implements Simple
 
     @DataBoundSetter
     public void setExternalId(String externalId) {
-        this.externalId = externalId
+        this.externalId = externalId;
     }
 
     @Extension

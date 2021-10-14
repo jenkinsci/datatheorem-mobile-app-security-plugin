@@ -383,7 +383,10 @@ public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage>
         if (applicationCredential != null) applicationCredential.add_credential_to_entity(entity_builder);
 
         entity_builder.addTextBody("release_type", releaseType);
-        entity_builder.addTextBody("externalId", externalId);
+
+        if (externalId != null && !externalId.isEmpty()) {
+            entity_builder.addTextBody("external_id", externalId);
+        }
 
         requestUploadbuild.setEntity(entity_builder.build());
         listener.getLogger().println("Start uploading build to the endpoint: " + this.uploadUrl);
