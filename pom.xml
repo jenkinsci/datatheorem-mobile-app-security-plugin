@@ -120,6 +120,7 @@
             <groupId>org.easymock</groupId>
             <artifactId>easymock</artifactId>
             <version>4.0.2</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>
