@@ -63,6 +63,7 @@ public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage>
     private ApplicationCredential applicationCredential = null;
     private Proxy proxy = null;
     private String releaseType = "PRE_PROD";
+    private String externalId = null;
 
     public SendBuildAction(String apiKey,
                            TaskListener listener,
@@ -383,6 +384,10 @@ public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage>
 
         entity_builder.addTextBody("release_type", releaseType);
 
+        if (externalId != null && !externalId.isEmpty()) {
+            entity_builder.addTextBody("external_id", externalId);
+        }
+
         requestUploadbuild.setEntity(entity_builder.build());
         listener.getLogger().println("Start uploading build to the endpoint: " + this.uploadUrl);
         // Add the api access key of the customer and tell to Upload API that the request comes from jenkins
@@ -416,5 +421,9 @@ public class SendBuildAction extends MasterToSlaveFileCallable<SendBuildMessage>
 
     public void setReleaseType(String releaseType) {
         this.releaseType = releaseType;
+    }
+
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
     }
 }

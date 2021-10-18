@@ -260,6 +260,8 @@ public class SendBuildTest {
         replay(uploadMock);
         // And the release type is set to ENTERPRISE
         uploadMock.setReleaseType("ENTERPRISE");
+        // And an external ID set to some non-empty string
+        uploadMock.setExternalId("test_external_id");
         SendBuildMessage uploadInitMessage = uploadMock.uploadInit();
 
         Assert.assertEquals(
