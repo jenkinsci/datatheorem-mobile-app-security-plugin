@@ -28,3 +28,37 @@ To find your API Key you can follow: https://datatheorem.github.io/PortalApi/upl
 ## Updating version
 
 You should update the version variable from the SendBuildAction and from pom.xml when releasing a new plugin version
+
+## Deploy a release
+
+Before deploying the project, ensure you have the permission rights
+https://github.com/jenkins-infra/repository-permissions-updater/
+
+Then execute the following commands:
+
+Prepare for new deployment
+
+    $ mvn release:prepare
+
+Ensure that the generate release.properties file is referring to the right repository:
+
+    git@github.com/jenkinsci/datatheorem-mobile-app-security-plugin.git
+
+Perform the release:
+
+    $ mvn release:perform
+
+
+If there is an issue with the deployment, please refer to the jenkins manual deployment guide:
+https://www.jenkins.io/doc/developer/publishing/releasing-manually/
+
+## Testing the release in production
+
+Wait for the jenkins release to be available . It may take up to 4hours.
+Once the plugin is available, you should see it at: https://plugins.jenkins.io/datatheorem-mobile-app-security/#releases
+
+Then create a whole new jenkins environment with docker
+
+    $ docker run -p 8080:8080 -p 50000:50000 jenkins/jenkins:2.316-jdk11
+
+Install the plugin and uses it to deploy a mobile application

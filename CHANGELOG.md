@@ -1,9 +1,12 @@
 CHANGELOG
 =========
 
+version 2.4.1
+-------------
+* Fix: Update pom.xml to support new jenkins version management
+
 version 2.4.0
 -------------
-
 * New: Add optional field: `external_id`.
 
 version 2.3.0
