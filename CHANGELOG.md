@@ -1,6 +1,10 @@
 CHANGELOG
 =========
 
+version 2.4.2
+-------------
+* Fix: Update jenkins version to 2.285 to enforce more secure jenkins version
+
 version 2.4.1
 -------------
 * Fix: Update pom.xml to support new jenkins version management
