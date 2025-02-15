@@ -5,7 +5,8 @@ import groovy.lang.Tuple2;
 import hudson.FilePath;
 import hudson.model.Run;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.FileSystems;
 import java.nio.file.PathMatcher;
 import java.nio.file.Paths;

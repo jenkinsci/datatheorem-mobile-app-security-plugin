@@ -2,7 +2,6 @@ package com.datatheorem.mobileappsecurity.jenkins.plugin;
 
 import com.datatheorem.mobileappsecurity.jenkins.plugin.utils.ListFiles;
 import hudson.FilePath;
-import hudson.model.Run;
 
 import java.io.IOException;
 import java.io.PrintStream;

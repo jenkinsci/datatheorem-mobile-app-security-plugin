@@ -1,9 +1,11 @@
 package com.datatheorem.mobileappsecurity.jenkins.plugin.sendbuild;
 
-import com.datatheorem.mobileappsecurity.jenkins.plugin.sendbuild.SendBuildAction;
 import hudson.FilePath;
 import hudson.model.TaskListener;
-import org.apache.http.*;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpResponseFactory;
+import org.apache.http.HttpStatus;
+import org.apache.http.HttpVersion;
 import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.impl.DefaultHttpResponseFactory;
 import org.apache.http.message.BasicStatusLine;
@@ -11,7 +13,6 @@ import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.annotation.Nonnull;
 import java.io.*;
 import java.net.UnknownHostException;
 
